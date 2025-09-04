@@ -70,7 +70,7 @@
 		}
 	},
 	"remoteEnv": {
-		"PATH": "/opt/conda/bin:/usr/local/cuda/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin"
+		"PATH": "/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:/opt/conda/bin:/usr/local/cuda/bin"
 	}
 	// "postStartCommand": "echo 'source /usr/share/bash-completion/completions/make' >> ~/.bashrc && eval \"$(ssh-agent -s)\" && ssh-add -l || true"
 }
