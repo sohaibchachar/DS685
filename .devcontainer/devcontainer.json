@@ -14,12 +14,6 @@
 		"UV_LINK_MODE": "copy",
 		"UV_PROJECT_ENVIRONMENT": "${workspaceFolder}/.venv"
 	},
-	"features": {
-		"ghcr.io/devcontainers/features/git:1": {
-			"version": "latest",
-			"ppa": false
-		}
-	},
 	"customizations": {
 		"vscode": {
 			"extensions": [
