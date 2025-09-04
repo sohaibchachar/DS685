@@ -22,7 +22,7 @@ classifiers = [
     "Programming Language :: Python :: 3.12",
     "Topic :: Scientific/Engineering :: Artificial Intelligence",
 ]
-requires-python = ">=3.12, <3.12.4"
+requires-python = ">=3.10"
 dependencies = [
     "datasets>=3.6.0",
     "foxglove>=0.1.10",
