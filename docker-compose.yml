@@ -16,7 +16,7 @@ services:
       - .:${WORKSPACE_DIR:-/workspaces/eng-ai-agents}
     working_dir: ${WORKSPACE_DIR:-/workspaces/eng-ai-agents}
     environment:
-      - PATH=${WORKSPACE_DIR:-/workspaces/eng-ai-agents}/.venv/bin:$PATH
+      - PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:${WORKSPACE_DIR:-/workspaces/eng-ai-agents}/.venv/bin
       - PYTHONPATH=${WORKSPACE_DIR:-/workspaces/eng-ai-agents}
       - VIRTUAL_ENV=${WORKSPACE_DIR:-/workspaces/eng-ai-agents}/.venv
       - UV_CACHE_DIR=/home/${WORKSPACE_USER:-vscode}/.uv-cache
@@ -57,7 +57,7 @@ services:
       - /tmp/.X11-unix:/tmp/.X11-unix:rw
     working_dir: ${WORKSPACE_DIR:-/workspaces/eng-ai-agents}
     environment:
-      - PATH=${WORKSPACE_DIR:-/workspaces/eng-ai-agents}/.venv/bin:$PATH
+      - PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:${WORKSPACE_DIR:-/workspaces/eng-ai-agents}/.venv/bin
       - PYTHONPATH=${WORKSPACE_DIR:-/workspaces/eng-ai-agents}
       - VIRTUAL_ENV=${WORKSPACE_DIR:-/workspaces/eng-ai-agents}/.venv
       - UV_CACHE_DIR=/home/${WORKSPACE_USER:-vscode}/.uv-cache
