@@ -15,14 +15,6 @@
 		"UV_PROJECT_ENVIRONMENT": "${workspaceFolder}/.venv"
 	},
 	"features": {
-		"ghcr.io/devcontainers/features/common-utils:2": {
-			"installZsh": false,
-			"installOhMyZsh": false,
-			"upgradePackages": false,
-			"username": "vscode",
-			"uid": "1001",
-			"gid": "1001"
-		},
 		"ghcr.io/devcontainers/features/git:1": {
 			"version": "latest",
 			"ppa": false
@@ -68,9 +60,6 @@
 				"dev.containers.copyGitConfig": true
 			}
 		}
-	},
-	"remoteEnv": {
-		"PATH": "/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:/opt/conda/bin:/usr/local/cuda/bin"
 	}
 	// "postStartCommand": "echo 'source /usr/share/bash-completion/completions/make' >> ~/.bashrc && eval \"$(ssh-agent -s)\" && ssh-add -l || true"
 }
