@@ -57,6 +57,5 @@ USER vscode
 
 # Disable GPG signing for git commits
 RUN git config --global commit.gpgsign false
-RUN apt-get update && apt-get install -y bash
 
 
