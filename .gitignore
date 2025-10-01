@@ -10,6 +10,11 @@ __pycache__/
 # Distribution / packaging
 .Python
 build/
+
+# ROS 2 workspace build artifacts
+**/build/
+**/install/
+**/log/
 develop-eggs/
 dist/
 downloads/
