@@ -203,5 +203,26 @@
       </link>
     </model>
 
+    <!-- Airport Bench -->
+    <include>
+      <uri>https://fuel.gazebosim.org/1.0/OpenRobotics/models/AirportBench</uri>
+      <name>airport_bench</name>
+      <pose>0.396 2.404 -0.17 0 0 0</pose>
+    </include>
+
+    <!-- Banana for Scale -->
+    <include>
+      <uri>https://fuel.gazebosim.org/1.0/mjcarroll/models/Banana for Scale</uri>
+      <name>banana_for_scale</name>
+      <pose>0.34 2.4327 0.25 0 0 0</pose>
+    </include>
+
+    <!-- JanSport Backpack Red -->
+    <include>
+      <uri>https://fuel.gazebosim.org/1.0/OpenRobotics/models/JanSport Backpack Red</uri>
+      <name>jansport_backpack_red</name>
+      <pose>0.4466 2.072 0.32 0 0 0</pose>
+    </include>
+
   </world>
 </sdf>

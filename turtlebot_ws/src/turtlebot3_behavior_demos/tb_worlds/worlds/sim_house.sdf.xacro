@@ -1470,6 +1470,127 @@
       </link>
       <static>1</static>
     </model>
+
+    <!-- Detection Platform 1 - New position -->
+    <model name='detection_platform'>
+      <pose>-1.63 0.40 0.05 -0.00 0.00 1.57</pose>
+      <static>true</static>
+      <link name='platform_link'>
+        <collision name='platform_collision'>
+          <geometry>
+            <box>
+              <size>1.2 0.3 0.1</size>
+            </box>
+          </geometry>
+        </collision>
+        <visual name='platform_visual'>
+          <geometry>
+            <box>
+              <size>1.2 0.3 0.1</size>
+            </box>
+          </geometry>
+          <material>
+            <ambient>0.8 0.8 0.8 1</ambient>
+            <diffuse>0.8 0.8 0.8 1</diffuse>
+          </material>
+        </visual>
+      </link>
+    </model>
+
+    <!-- Banana for Scale - on platform 1 -->
+    <include>
+      <uri>https://fuel.gazebosim.org/1.0/mjcarroll/models/Banana for Scale</uri>
+      <name>banana_for_scale</name>
+      <pose>-1.61 0.73 0.09 0 0 0</pose>
+    </include>
+
+    <!-- JanSport Backpack Red - on platform 1, same level as banana -->
+    <include>
+      <uri>https://fuel.gazebosim.org/1.0/OpenRobotics/models/JanSport Backpack Red</uri>
+      <name>jansport_backpack_red</name>
+      <pose>-1.60 -0.05 0.09 0 0 0</pose>
+    </include>
+
+    <!-- Detection Platform 2 - New position -->
+    <model name='detection_platform_2'>
+      <pose>1.65 2.59 0.05 0 0.00 1.57</pose>
+      <static>true</static>
+      <link name='platform_2_link'>
+        <collision name='platform_2_collision'>
+          <geometry>
+            <box>
+              <size>1.2 0.3 0.1</size>
+            </box>
+          </geometry>
+        </collision>
+        <visual name='platform_2_visual'>
+          <geometry>
+            <box>
+              <size>1.2 0.3 0.1</size>
+            </box>
+          </geometry>
+          <material>
+            <ambient>0.8 0.8 0.8 1</ambient>
+            <diffuse>0.8 0.8 0.8 1</diffuse>
+          </material>
+        </visual>
+      </link>
+    </model>
+
+    <!-- Eat to Live Book - on platform 2 top side, rotated 90 degrees -->
+    <include>
+      <uri>https://fuel.gazebosim.org/1.0/GoogleResearch/models/Eat_to_Live_The_Amazing_NutrientRich_Program_for_Fast_and_Sustained_Weight_Loss_Revised_Edition_Book</uri>
+      <name>eat_to_live_book</name>
+      <pose>1.65 2.74 0.15 0 0 1.57</pose>
+    </include>
+
+    <!-- Water Bottle - on platform 2 bottom side -->
+    <include>
+      <uri>https://fuel.gazebosim.org/1.0/iche033/models/Water Bottle</uri>
+      <name>water_bottle</name>
+      <pose>1.65 2.44 0.15 0 0 0</pose>
+    </include>
+
+    <!-- Detection Platform 3 - New position -->
+    <model name='detection_platform_3'>
+      <pose>5.19 2.80 0.05 0 0 1.57</pose>
+      <static>true</static>
+      <link name='platform_3_link'>
+        <collision name='platform_3_collision'>
+          <geometry>
+            <box>
+              <size>1.2 0.3 0.1</size>
+            </box>
+          </geometry>
+        </collision>
+        <visual name='platform_3_visual'>
+          <geometry>
+            <box>
+              <size>1.2 0.3 0.1</size>
+            </box>
+          </geometry>
+          <material>
+            <ambient>0.8 0.8 0.8 1</ambient>
+            <diffuse>0.8 0.8 0.8 1</diffuse>
+          </material>
+        </visual>
+      </link>
+    </model>
+
+    <!-- Birthday Cake - on platform 3 top side -->
+    <include>
+      <uri>https://fuel.gazebosim.org/1.0/chapulina/models/Birthday cake</uri>
+      <name>birthday_cake</name>
+      <pose>5.19 2.95 0.15 0 0 0</pose>
+    </include>
+
+    <!-- RoboCup 3D Simulation Ball - on platform 3 bottom side -->
+    <include>
+      <uri>https://fuel.gazebosim.org/1.0/OpenRobotics/models/RoboCup 3D Simulation Ball</uri>
+      <name>robocup_ball</name>
+      <pose>5.19 2.65 0.15 0 0 0</pose>
+    </include>
+
     <state world_name='default'>
       <sim_time>206 459000000</sim_time>
       <real_time>79 688300467</real_time>
