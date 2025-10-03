@@ -12,7 +12,7 @@ setup(
         ('share/' + package_name, ['package.xml']),
         ('share/' + package_name + '/launch', ['launch/object_detection.launch.py']),
     ],
-    install_requires=['setuptools', 'torch', 'torchvision', 'opencv-python', 'numpy', 'Pillow'],
+    install_requires=['setuptools', 'torch', 'torchvision', 'opencv-python', 'numpy', 'Pillow', 'psycopg2-binary'],
     zip_safe=True,
     maintainer='vscode',
     maintainer_email='sohaibchachar12@gmail.com',
