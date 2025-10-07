@@ -1,9 +1,4 @@
 #!/usr/bin/env python3
-"""
-ROS2 Object Detection Node for TurtleBot3
-Subscribes to camera feed and performs object detection using PyTorch COCO model
-"""
-
 import rclpy
 from rclpy.node import Node
 from sensor_msgs.msg import Image
@@ -21,78 +16,56 @@ from .semantic_db import SemanticDB
 
 
 class ObjectDetectionNode(Node):
-    """
-    ROS2 Node for object detection using PyTorch COCO model
-    """
-    
     def __init__(self):
         super().__init__('object_detection_node')
-        
-        # Initialize CV bridge for ROS2 image conversion
         self.bridge = CvBridge()
-        
-        # COCO class names
         self.coco_classes = [
             '__background__', 'person', 'bicycle', 'car', 'motorcycle', 'airplane', 'bus',
-            'train', 'truck', 'boat', 'traffic light', 'fire hydrant', 'N/A', 'stop sign',
+            'train', 'truck', 'boat', 'traffic light', 'fire hydrant',  'stop sign',
             'parking meter', 'bench', 'bird', 'cat', 'dog', 'horse', 'sheep', 'cow',
-            'elephant', 'bear', 'zebra', 'giraffe', 'N/A', 'backpack', 'umbrella', 'N/A', 'N/A',
+            'elephant', 'bear', 'zebra', 'giraffe',  'backpack', 'umbrella', 
             'handbag', 'tie', 'backpack', 'frisbee', 'skis', 'snowboard', 'sports ball',
             'kite', 'baseball bat', 'baseball glove', 'skateboard', 'surfboard', 'tennis racket',
-            'bottle', 'N/A', 'wine glass', 'cup', 'fork', 'knife', 'spoon', 'bowl', 'banana',
+            'bottle',  'wine glass', 'cup', 'fork', 'knife', 'spoon', 'bowl', 'banana',
             'apple', 'sandwich', 'orange', 'broccoli', 'carrot', 'hot dog', 'pizza', 'donut',
-            'cake', 'couch', 'potted plant', 'bed', 'N/A', 'dining table', 'N/A', 'N/A',
-            'toilet', 'N/A', 'tv', 'laptop', 'mouse', 'remote', 'keyboard', 'cell phone',
-            'microwave', 'oven', 'toaster', 'sink', 'refrigerator', 'N/A', 'book', 'clock',
+            'cake', 'couch', 'potted plant', 'bed',  'dining table', 
+            'toilet',  'tv', 'laptop', 'mouse', 'remote', 'keyboard', 'cell phone',
+            'microwave', 'oven', 'toaster', 'sink', 'refrigerator',  'book', 'clock',
             'vase', 'scissors', 'teddy bear', 'hair drier', 'toothbrush' , "cell phone", 'book'
         ]
         
-        # Initialize model
         self.device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
         self.get_logger().info(f'Using device: {self.device}')
-        
-        # Load pre-trained model
+
         self.get_logger().info('Loading Faster R-CNN model...')
         self.model = fasterrcnn_resnet50_fpn(pretrained=True)
         self.model.to(self.device)
         self.model.eval()
         self.get_logger().info('Model loaded successfully!')
-        
-        # Image preprocessing
+
         self.transform = transforms.Compose([
             transforms.ToTensor(),
         ])
 
-        # Embedding model (ResNet50 without final classification layer)
-        # Produces a 2048-d embedding per crop
+
         self.embedding_model = models.resnet50(pretrained=True)
         self.embedding_model = nn.Sequential(*list(self.embedding_model.children())[:-1])
         self.embedding_model.to(self.device)
         self.embedding_model.eval()
 
-        # Transform for embeddings
         self.embed_transform = transforms.Compose([
             transforms.Resize((224, 224)),
             transforms.ToTensor(),
             transforms.Normalize(mean=[0.485, 0.456, 0.406], std=[0.229, 0.224, 0.225])
         ])
         
-        # Detection parameters
         self.confidence_threshold = 0.5
         self.detection_count = 0
         
-        # Subscribe to camera topic
-        self.subscription = self.create_subscription(
-            Image,
-            '/camera/image_raw',
-            self.image_callback,
-            10
-        )
+        self.subscription = self.create_subscription(Image,'/camera/image_raw',self.image_callback,10)
         
-        # Publisher for annotated images
         self.annotated_pub = self.create_publisher(Image, '/camera/annotated', 10)
         
-        # Publisher for detection results
         self.detection_pub = self.create_publisher(Image, '/detection_results', 10)
         
         # Semantic DB
@@ -114,12 +87,7 @@ class ObjectDetectionNode(Node):
         
         # Subscribe to AMCL pose for robot position  
         from geometry_msgs.msg import PoseWithCovarianceStamped
-        self.amcl_pose_sub = self.create_subscription(
-            PoseWithCovarianceStamped,
-            '/amcl_pose',
-            self.amcl_pose_callback,
-            10
-        )
+        self.amcl_pose_sub = self.create_subscription(PoseWithCovarianceStamped,'/amcl_pose',self.amcl_pose_callback,10)
         self.current_robot_pose = None  # Store latest pose (x, y, theta)
 
         self.get_logger().info('Object Detection Node initialized')
@@ -127,12 +95,10 @@ class ObjectDetectionNode(Node):
         self.get_logger().info('Publishing annotated images to /camera/annotated')
         
     def amcl_pose_callback(self, msg):
-        """Store latest robot pose from AMCL"""
         pose = msg.pose.pose
         x = pose.position.x
         y = pose.position.y
         
-        # Extract theta from quaternion
         q = pose.orientation
         siny_cosp = 2 * (q.w * q.z + q.x * q.y)
         cosy_cosp = 1 - 2 * (q.y * q.y + q.z * q.z)
@@ -142,65 +108,50 @@ class ObjectDetectionNode(Node):
         self.get_logger().debug(f'AMCL pose: ({x:.2f}, {y:.2f}, {theta:.2f})')
         
     def image_callback(self, msg):
-        """
-        Callback function for processing incoming camera images
-        """
+
         try:
-            # Convert ROS2 image to OpenCV format
             cv_image = self.bridge.imgmsg_to_cv2(msg, "bgr8")
-            
-            # Perform object detection
             detections = self.detect_objects(cv_image)
             
-            # Print detections to terminal before storing to database
             if detections:
                 self.get_logger().info(f"🎯 DETECTED {len(detections)} OBJECTS:")
                 for i, det in enumerate(detections):
                     self.get_logger().info(f"  {i+1}. {det['class_name']} (confidence: {det['confidence']:.3f})")
                     self.get_logger().info(f"     Bbox: [{det['bbox'][0]}, {det['bbox'][1]}, {det['bbox'][2]}, {det['bbox'][3]}]")
                     if 'embedding' in det:
-                        self.get_logger().info(f"     ✅ Has 2048-d embedding")
+                        self.get_logger().info(f"Has 2048-d embedding")
                     else:
-                        self.get_logger().info(f"     ⚠️  No embedding extracted")
+                        self.get_logger().info(f"No embedding extracted")
             
-            # If DB is enabled, store detections with pose
             if self.db_enabled and detections:
                 pose = self._get_robot_pose(msg.header.stamp)
                 if pose is not None:
                     robot_x, robot_y, robot_theta = pose
                     region_name = f"location_{int(robot_x)}_{int(robot_y)}"
-                    self.get_logger().info(f"🤖 ROBOT POSE: x={robot_x:.2f}, y={robot_y:.2f}, θ={robot_theta:.2f}")
-                    self.get_logger().info(f"📍 REGION: {region_name}")
+                    self.get_logger().info(f"ROBOT POSE: x={robot_x:.2f}, y={robot_y:.2f}, θ={robot_theta:.2f}")
+                    self.get_logger().info(f"REGION: {region_name}")
                     
-                    self.get_logger().info(f"💾 STORING TO DATABASE:")
+                    self.get_logger().info(f"STORING TO DATABASE:")
                     for det in detections:
                         try:
                             embedding = det.get('embedding')
                             if embedding is None:
-                                # fallback zero vector if embedding missing
                                 embedding = [0.0] * 2048
-                                self.get_logger().warn(f"     ⚠️  Using zero vector for {det['class_name']}")
+                                self.get_logger().warn(f"Using zero vector for {det['class_name']}")
                             obj_id = self.semantic_db.insert_object(det['class_name'], det['class_id'], float(det['confidence']), embedding)
                             self.semantic_db.insert_observation(obj_id, robot_x, robot_y, robot_theta, det['bbox'], region_name)
-                            self.get_logger().info(f"     ✅ Stored '{det['class_name']}' (ID: {obj_id}) at {region_name}")
+                            self.get_logger().info(f"Stored '{det['class_name']}' (ID: {obj_id}) at {region_name}")
                         except Exception as e:
-                            self.get_logger().warn(f'❌ Failed to store {det["class_name"]}: {e}')
+                            self.get_logger().warn(f'Failed to store {det["class_name"]}: {e}')
                 else:
-                    self.get_logger().warn(f"⚠️  Cannot store detections: Robot pose unavailable")
+                    self.get_logger().warn(f"Cannot store detections: Robot pose unavailable")
             elif self.db_enabled and not detections:
-                self.get_logger().debug("🔍 No objects detected above threshold")
+                self.get_logger().debug("No objects detected above threshold")
 
-            # Annotate image with detections
             annotated_image = self.annotate_image(cv_image, detections)
-            
-            # Publish annotated image
             annotated_msg = self.bridge.cv2_to_imgmsg(annotated_image, "bgr8")
             annotated_msg.header = msg.header
             self.annotated_pub.publish(annotated_msg)
-            
-            # Legacy detection logging (optional - now we have detailed logging above)
-            if detections:
-                self.log_detections(detections)
                 
         except Exception as e:
             self.get_logger().error(f'Error processing image: {str(e)}')
