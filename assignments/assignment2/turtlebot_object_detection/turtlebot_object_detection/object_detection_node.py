@@ -68,14 +68,19 @@ class ObjectDetectionNode(Node):
         
         self.detection_pub = self.create_publisher(Image, '/detection_results', 10)
         
-        # Semantic DB
+        # Semantic DB - automatically enabled with default settings
         self.db_enabled = True
         try:
+            self.get_logger().info('🔗 Attempting to connect to semantic database...')
             self.semantic_db = SemanticDB()
-            self.get_logger().info('Semantic DB connected')
+            self.get_logger().info('✅ Semantic DB connected successfully!')
+            self.get_logger().info('💾 Database will automatically store detected objects with embeddings')
+            self.get_logger().info('🤖 Robot pose tracking enabled for spatial storage')
         except Exception as e:
             self.db_enabled = False
-            self.get_logger().warn(f'Semantic DB disabled: {e}')
+            self.get_logger().warn(f'❌ Semantic DB disabled: {e}')
+            self.get_logger().warn('⚠️ Object detections will still work but not be stored in database')
+            self.get_logger().warn('💡 Make sure PostgreSQL is running: sudo service postgresql start')
 
         # TF2 for robot pose
         try:
@@ -123,28 +128,29 @@ class ObjectDetectionNode(Node):
                     else:
                         self.get_logger().info(f"No embedding extracted")
             
+            # Store detections in database if enabled
             if self.db_enabled and detections:
                 pose = self._get_robot_pose(msg.header.stamp)
                 if pose is not None:
                     robot_x, robot_y, robot_theta = pose
                     region_name = f"location_{int(robot_x)}_{int(robot_y)}"
-                    self.get_logger().info(f"ROBOT POSE: x={robot_x:.2f}, y={robot_y:.2f}, θ={robot_theta:.2f}")
-                    self.get_logger().info(f"REGION: {region_name}")
+                    self.get_logger().info(f"🤖 ROBOT POSE: x={robot_x:.2f}, y={robot_y:.2f}, θ={robot_theta:.2f}")
+                    self.get_logger().info(f"📍 REGION: {region_name}")
                     
-                    self.get_logger().info(f"STORING TO DATABASE:")
+                    self.get_logger().info(f"💾 STORING TO DATABASE:")
                     for det in detections:
                         try:
                             embedding = det.get('embedding')
                             if embedding is None:
                                 embedding = [0.0] * 2048
-                                self.get_logger().warn(f"Using zero vector for {det['class_name']}")
+                                self.get_logger().warn(f"⚠️ Using zero vector for {det['class_name']}")
                             obj_id = self.semantic_db.insert_object(det['class_name'], det['class_id'], float(det['confidence']), embedding)
                             self.semantic_db.insert_observation(obj_id, robot_x, robot_y, robot_theta, det['bbox'], region_name)
-                            self.get_logger().info(f"Stored '{det['class_name']}' (ID: {obj_id}) at {region_name}")
+                            self.get_logger().info(f"✅ Stored '{det['class_name']}' (ID: {obj_id}) at {region_name}")
                         except Exception as e:
-                            self.get_logger().warn(f'Failed to store {det["class_name"]}: {e}')
+                            self.get_logger().warn(f'❌ Failed to store {det["class_name"]}: {e}')
                 else:
-                    self.get_logger().warn(f"Cannot store detections: Robot pose unavailable")
+                    self.get_logger().warn(f"⚠️ Cannot store detections: Robot pose unavailable")
             elif self.db_enabled and not detections:
                 self.get_logger().debug("No objects detected above threshold")
 

@@ -22,6 +22,7 @@ from typing import List, Dict, Optional, Tuple
 
 class SemanticDB:
     def __init__(self) -> None:
+        # Default database configuration - no need for environment variables
         self.config = {
             'host': os.getenv('POSTGRES_HOST', 'localhost'),
             'port': int(os.getenv('POSTGRES_PORT', '5432')),
@@ -34,7 +35,24 @@ class SemanticDB:
         self.ensure_schema()
 
     def connect(self) -> None:
-        self.conn = psycopg2.connect(**self.config)
+        try:
+            # Try to connect with the configured settings
+            self.conn = psycopg2.connect(**self.config)
+            print(f"✅ Connected to database: {self.config['database']} on {self.config['host']}:{self.config['port']}")
+        except psycopg2.OperationalError as e:
+            if "password authentication failed" in str(e).lower():
+                print(f"❌ Database password authentication failed")
+                print(f"💡 Trying with default password...")
+                # Try with default password
+                self.config['password'] = 'postgres'
+                self.conn = psycopg2.connect(**self.config)
+                print(f"✅ Connected to database with default password")
+            else:
+                print(f"❌ Failed to connect to database: {e}")
+                raise
+        except Exception as e:
+            print(f"❌ Database connection error: {e}")
+            raise
 
     def ensure_schema(self) -> None:
         cur = self.conn.cursor()
