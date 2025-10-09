@@ -19,19 +19,20 @@ class ObjectDetectionNode(Node):
     def __init__(self):
         super().__init__('object_detection_node')
         self.bridge = CvBridge()
+        # Full COCO class names (91 classes)
         self.coco_classes = [
             '__background__', 'person', 'bicycle', 'car', 'motorcycle', 'airplane', 'bus',
-            'train', 'truck', 'boat', 'traffic light', 'fire hydrant',  'stop sign',
+            'train', 'truck', 'boat', 'traffic light', 'fire hydrant', 'N/A', 'stop sign',
             'parking meter', 'bench', 'bird', 'cat', 'dog', 'horse', 'sheep', 'cow',
-            'elephant', 'bear', 'zebra', 'giraffe',  'backpack', 'umbrella', 
-            'handbag', 'tie', 'backpack', 'frisbee', 'skis', 'snowboard', 'sports ball',
+            'elephant', 'bear', 'zebra', 'giraffe', 'N/A', 'backpack', 'umbrella', 'N/A', 'N/A',
+            'handbag', 'tie', 'suitcase', 'frisbee', 'skis', 'snowboard', 'sports ball',
             'kite', 'baseball bat', 'baseball glove', 'skateboard', 'surfboard', 'tennis racket',
-            'bottle',  'wine glass', 'cup', 'fork', 'knife', 'spoon', 'bowl', 'banana',
-            'apple', 'sandwich', 'orange', 'broccoli', 'carrot', 'hot dog', 'pizza', 'donut',
-            'cake', 'couch', 'potted plant', 'bed',  'dining table', 
-            'toilet',  'tv', 'laptop', 'mouse', 'remote', 'keyboard', 'cell phone',
-            'microwave', 'oven', 'toaster', 'sink', 'refrigerator',  'book', 'clock',
-            'vase', 'scissors', 'teddy bear', 'hair drier', 'toothbrush' , "cell phone", 'book'
+            'bottle', 'N/A', 'wine glass', 'cup', 'fork', 'knife', 'spoon', 'bowl',
+            'banana', 'apple', 'sandwich', 'orange', 'broccoli', 'carrot', 'hot dog', 'pizza',
+            'donut', 'cake', 'chair', 'couch', 'potted plant', 'bed', 'N/A', 'dining table',
+            'N/A', 'N/A', 'toilet', 'N/A', 'tv', 'laptop', 'mouse', 'remote', 'keyboard',
+            'cell phone', 'microwave', 'oven', 'toaster', 'sink', 'refrigerator', 'N/A', 'book',
+            'clock', 'vase', 'scissors', 'teddy bear', 'hair drier', 'toothbrush'
         ]
         
         self.device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
@@ -222,6 +223,12 @@ class ObjectDetectionNode(Node):
             if confidence > self.confidence_threshold:
                 box = pred['boxes'][i].cpu().numpy()
                 class_id = pred['labels'][i].item()
+                
+                # Safety check for class_id
+                if class_id >= len(self.coco_classes):
+                    self.get_logger().warn(f'Detected class_id {class_id} is out of range (max: {len(self.coco_classes)-1}). Skipping.')
+                    continue
+                    
                 class_name = self.coco_classes[class_id]
                 
                 detection = {
