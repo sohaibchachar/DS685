@@ -84,5 +84,23 @@ The object detection node will:
 
 ---
 
+## 📂 Project Structure
+
+### Part 1: Camera Setup
+The [`camera/`](./camera/) directory contains a cloned repository for USB camera integration (Part 1 of this assignment). This includes the camera nodes that publish to the `/camera/image_raw` topic.
+
+
+### Part 2 3 and 4: Core Implementation Files
+
+**Object Detection Node:**
+- [`turtlebot_object_detection/turtlebot_object_detection/object_detection_node.py`](./turtlebot_object_detection/turtlebot_object_detection/object_detection_node.py) - Main detection node with Faster R-CNN integration
+
+**Database Interface:**
+- [`turtlebot_object_detection/turtlebot_object_detection/semantic_db.py`](./turtlebot_object_detection/turtlebot_object_detection/semantic_db.py) - PostgreSQL + pgvector database interface
+
+### 📸 Screenshots and Recordings
+All screenshots, screen recordings, and demonstration videos can be found in the [`Screenshots/`](./Screenshots/) folder.
+
+---
 
 
