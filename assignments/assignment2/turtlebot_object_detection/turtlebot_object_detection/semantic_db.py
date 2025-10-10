@@ -1,18 +1,4 @@
 #!/usr/bin/env python3
-"""
-Simple PostgreSQL + pgvector storage for semantic localization.
-
-Tables:
-- regions(id, name UNIQUE, kind, created_at)
-- objects(id, class_name, class_id, confidence, embedding vector(2048), created_at)
-- object_observations(id, object_id, region_id, robot_x, robot_y, robot_theta, bbox_json, created_at)
-
-Usage:
-  db = SemanticDB()
-  obj_id = db.insert_object(class_name, class_id, confidence, embedding)
-  db.insert_observation(obj_id, robot_x, robot_y, robot_theta, bbox, region_name)
-"""
-
 import os
 import json
 import psycopg2
@@ -22,7 +8,6 @@ from typing import List, Dict, Optional, Tuple
 
 class SemanticDB:
     def __init__(self) -> None:
-        # Default database configuration - no need for environment variables
         self.config = {
             'host': os.getenv('POSTGRES_HOST', 'localhost'),
             'port': int(os.getenv('POSTGRES_PORT', '5432')),
@@ -38,20 +23,19 @@ class SemanticDB:
         try:
             # Try to connect with the configured settings
             self.conn = psycopg2.connect(**self.config)
-            print(f"✅ Connected to database: {self.config['database']} on {self.config['host']}:{self.config['port']}")
+            print(f"Connected to database: {self.config['database']} on {self.config['host']}:{self.config['port']}")
         except psycopg2.OperationalError as e:
             if "password authentication failed" in str(e).lower():
-                print(f"❌ Database password authentication failed")
-                print(f"💡 Trying with default password...")
-                # Try with default password
+                print(f"Database password authentication failed")
+                print(f"Trying with default password...")
                 self.config['password'] = 'postgres'
                 self.conn = psycopg2.connect(**self.config)
-                print(f"✅ Connected to database with default password")
+                print(f"Connected to database with default password")
             else:
-                print(f"❌ Failed to connect to database: {e}")
+                print(f"Failed to connect to database: {e}")
                 raise
         except Exception as e:
-            print(f"❌ Database connection error: {e}")
+            print(f"Database connection error: {e}")
             raise
 
     def ensure_schema(self) -> None:
@@ -103,7 +87,6 @@ class SemanticDB:
 
         # indexes
         cur.execute("CREATE INDEX IF NOT EXISTS idx_objects_class ON objects(class_name);")
-        # Skip ivfflat index for large vectors (2048-dim), use regular index instead
         cur.execute("CREATE INDEX IF NOT EXISTS idx_objects_embed_basic ON objects(class_name, confidence);")
         cur.execute("CREATE INDEX IF NOT EXISTS idx_obs_region ON object_observations(region_id);")
         cur.execute("CREATE INDEX IF NOT EXISTS idx_obs_created ON object_observations(created_at DESC);")
