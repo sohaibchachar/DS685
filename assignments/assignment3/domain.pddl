@@ -1,38 +1,25 @@
 (define (domain robot-manipulation)
-    
     (:requirements :strips :typing)
-    
     (:types
-        object - physobj
+        object
         robot
-        gripper
     )
-    
     (:predicates
-        (at ?r - robot ?x - object)
-        (holding ?r - robot ?x - object)
-        (on ?x - object ?y - object)
-        (clear ?x - object)
-        (handempty ?r - robot)
-        (picked ?x - object)
-        (placed ?x - object ?y - object)
+        (at ?r - robot ?o - object)
+        (clear ?o - object)
+        (holding ?r - robot ?o - object)
+        (on ?o1 - object ?o2 - object)
+        (open ?o - object)
+        (closed ?o - object)
     )
-    
     (:action pick
-        :parameters (?r - robot ?x - object)
-        :precondition (and (at ?r ?x) (clear ?x) (handempty ?r))
-        :effect (and (holding ?r ?x) (not (handempty ?r)) (not (at ?r ?x)) (picked ?x))
+        :parameters (?r - robot ?o - object)
+        :precondition (and (clear ?o))
+        :effect (and (holding ?r ?o) (not (clear ?o)))
     )
-    
     (:action place
-        :parameters (?r - robot ?x - object ?y - object)
-        :precondition (and (holding ?r ?x))
-        :effect (and (not (holding ?r ?x)) (handempty ?r) (at ?r ?x) (on ?x ?y) (placed ?x ?y))
-    )
-    
-    (:action place-floor
-        :parameters (?r - robot ?x - object)
-        :precondition (and (holding ?r ?x))
-        :effect (and (not (holding ?r ?x)) (handempty ?r) (at ?r ?x) (clear ?x))
+        :parameters (?r - robot ?o - object ?dst - object)
+        :precondition (and (holding ?r ?o))
+        :effect (and (on ?o ?dst) (not (holding ?r ?o)) (clear ?o))
     )
 )
