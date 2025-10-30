@@ -27,6 +27,13 @@ dependencies = [
     "datasets>=3.6.0",
     "foxglove>=0.1.10",
     "transformers>=4.53.0",
+    "langchain>=0.3.7",
+    "langchain-core>=0.3.7",
+    "langchain-openai>=0.2.0",
+    "langchain-anthropic>=0.2.0",
+    "pydantic-ai>=0.0.17",
+    "python-dotenv>=1.0.0",
+    "streamlit>=1.0.0",
 ]
 
 [project.urls]
