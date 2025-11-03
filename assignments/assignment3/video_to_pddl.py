@@ -1,14 +1,8 @@
-"""Generate PDDL domain and problem from a single video/frames using VLMs (LLaVA or OpenCLIP).
+"""Generate PDDL domain and problem from a single video using OpenCLIP.
 
 Usage:
-  # Using an existing frames directory (recommended)
-  # Using an existing frames directory (recommended)
-  python video_to_pddl.py --frames-dir results/video_episode/frames \
-      --out-name screenrecording --prompts-file prompts.txt --llava
-
-  # Or from a video (will extract frames first)
   python video_to_pddl.py --video "Screen Recording 2025-10-29 220851.mp4" \
-      --out-name screenrecording --fps 1 --prompts-file prompts.txt --llava
+      --out-name screenrecording --fps 1
 
 Outputs:
   - domain.pddl (in current dir)
@@ -16,20 +10,12 @@ Outputs:
 """
 
 import argparse
-import os
 import subprocess
 import sys
 from pathlib import Path
 
-# Load environment variables from .env file if it exists
-try:
-    from dotenv import load_dotenv
-    load_dotenv()
-except ImportError:
-    pass  # python-dotenv not installed, will use system env vars
 
-
-def extract_frames(video_path: Path, frames_dir: Path, fps: int = 1) -> None:
+def extract_frames(video_path: Path, frames_dir: Path, fps: int = 5) -> None:
     frames_dir.mkdir(parents=True, exist_ok=True)
     cmd = [
         "ffmpeg", "-y", "-i", str(video_path), "-vf", f"fps={fps}",
@@ -38,20 +24,7 @@ def extract_frames(video_path: Path, frames_dir: Path, fps: int = 1) -> None:
     subprocess.run(cmd, check=True)
 
 
-def load_prompts(prompts_file: Path | None) -> list[str]:
-    if prompts_file and prompts_file.exists():
-        txt = prompts_file.read_text(encoding="utf-8")
-        # One prompt per line; ignore empty lines
-        return [line.strip() for line in txt.splitlines() if line.strip()]
-    # Fallback minimal list if none provided
-    return [
-        "a robot picking an object", "placing an object", "stacking objects",
-        "opening a container", "closing a container", "moving an object",
-        "blocks", "cubes", "tabletop objects",
-    ]
-
-
-def score_frames_with_openclip(frames_dir: Path, prompts: list[str]) -> dict:
+def score_frames_with_openclip(frames_dir: Path) -> dict:
     try:
         import open_clip  # type: ignore
         import torch  # type: ignore
@@ -66,6 +39,9 @@ def score_frames_with_openclip(frames_dir: Path, prompts: list[str]) -> dict:
     device = 'cuda' if torch.cuda.is_available() else 'cpu'
     model = model.to(device)
 
+    prompts = [
+        "Whats happening in the scene?"
+    ]
     text = tokenizer(prompts).to(device)
     with torch.no_grad():
         text_features = model.encode_text(text)
@@ -92,64 +68,7 @@ def score_frames_with_openclip(frames_dir: Path, prompts: list[str]) -> dict:
         "label_counts": label_counts,
         "top_examples": sorted(top_examples, key=lambda x: -x[1])[:5],
         "frames": len(jpgs),
-        "prompts": prompts,
     }
-
-
-def caption_frames_with_llava(
-    frames_dir: Path,
-    prompts: list[str],
-    model_id: str = "llava-hf/llava-v1.6-vicuna-7b-hf",
-    max_frames: int = 8,
-) -> dict:
-    """Caption up to max_frames using LLaVA and return aggregated captions.
-
-    Requires GPU for reasonable speed. Falls back to CPU if necessary (slow).
-    """
-    try:
-        from transformers import LlavaProcessor, LlavaForConditionalGeneration  # type: ignore
-        import torch  # type: ignore
-        from PIL import Image  # type: ignore
-    except Exception as e:
-        raise RuntimeError(
-            "LLaVA dependencies missing. Install: pip install 'transformers>=4.41' accelerate safetensors sentencepiece pillow"
-        ) from e
-
-    device = "cuda" if torch.cuda.is_available() else "cpu"
-    dtype = torch.float16 if device == "cuda" else torch.float32
-
-    # Get HF token from environment
-    hf_token = os.getenv("HF_TOKEN") or os.getenv("HUGGINGFACE_TOKEN")
-    
-    processor = LlavaProcessor.from_pretrained(model_id, token=hf_token)
-    model = LlavaForConditionalGeneration.from_pretrained(
-        model_id, torch_dtype=dtype, low_cpu_mem_usage=True, device_map="auto", token=hf_token
-    )
-
-    jpgs = sorted(frames_dir.glob("*.jpg"))[:max_frames]
-    if not jpgs:
-        return {"captions": [], "frames": 0, "prompts": prompts}
-
-    # Use first prompt as instruction, or a default
-    instruction = prompts[0] if prompts else "Describe the manipulation actions and objects. Be concise."
-    captions: list[tuple[str, str]] = []  # (frame, text)
-
-    for img_path in jpgs:
-        image = Image.open(img_path).convert("RGB")
-        message = [
-            {"role": "user", "content": [
-                {"type": "text", "text": instruction},
-                {"type": "image"},
-            ]}
-        ]
-        chat = processor.apply_chat_template(message, add_generation_prompt=True)
-        inputs = processor(images=image, text=chat, return_tensors="pt").to(device, dtype=dtype)
-        with torch.no_grad():
-            output = model.generate(**inputs, max_new_tokens=128)
-        text = processor.decode(output[0], skip_special_tokens=True)
-        captions.append((img_path.name, text))
-
-    return {"captions": captions, "frames": len(jpgs), "prompts": prompts, "instruction": instruction}
 
 
 def write_domain(domain_path: Path) -> None:
@@ -182,31 +101,21 @@ def write_domain(domain_path: Path) -> None:
     domain_path.write_text(content)
 
 
-def write_problem(problem_path: Path, name: str, inferred: dict) -> None:
-    # Build problem from inferred prompts without hardcoding specific labels.
-    # We keep a generic object set; embed the top labels/captions as a comment for traceability.
+def write_problem(problem_path: Path, name: str, inferred_labels: dict) -> None:
+    # Minimal, generic objects inferred from labels
+    objects = ["robot1", "obj1", "obj2", "table"]
     init = ["(clear obj1)", "(clear obj2)"]
-    # Choose a neutral goal unless caller provides prompts oriented to a specific relation
-    # Here we use a simple default; users can refine by editing the problem.
-    goal = "(on obj1 table)"
 
-    # Handle both OpenCLIP output (top_examples) and LLaVA output (captions)
-    top_labels = inferred.get("top_examples", [])
-    captions = inferred.get("captions", [])
-    prompts_used = inferred.get("prompts", [])
-    instruction = inferred.get("instruction")
-
-    # Build comment section
-    comment_lines = []
-    if captions:
-        comment_lines.append(f"; LLaVA captions (frame, text): {captions}")
-        if instruction:
-            comment_lines.append(f"; Instruction used: {instruction}")
-    elif top_labels:
-        comment_lines.append(f"; Top labels (label, prob, frame): {top_labels}")
-    if prompts_used:
-        comment_lines.append(f"; Prompts used: {prompts_used}")
-    comment_section = "\n    ".join(comment_lines) if comment_lines else "; No analysis data"
+    # Heuristic goal from labels
+    labels = inferred_labels.get("label_counts", {})
+    if max(labels.values() or [0]) == 0:
+        goal = "(clear obj1)"  # fallback
+    else:
+        # Prefer stacking/placing if present
+        if any(k in labels for k in ["stacking objects", "blocks", "cubes"]):
+            goal = "(on obj1 obj2)"
+        else:
+            goal = "(on obj1 table)"
 
     content = f"""(define (problem {name})
     (:domain robot-manipulation)
@@ -220,58 +129,31 @@ def write_problem(problem_path: Path, name: str, inferred: dict) -> None:
     (:goal
         {goal}
     )
-    {comment_section}
 )
 """
     problem_path.write_text(content)
 
 
 def main():
-    parser = argparse.ArgumentParser(description="Single video/frames to PDDL (LLaVA or OpenCLIP)")
-    grp = parser.add_mutually_exclusive_group(required=True)
-    grp.add_argument("--video", type=str, help="Path to video file")
-    grp.add_argument("--frames-dir", type=str, help="Existing frames directory")
+    parser = argparse.ArgumentParser(description="Single video to PDDL")
+    parser.add_argument("--video", required=True, type=str, help="Path to video file")
     parser.add_argument("--out-name", default="video_problem", type=str, help="Problem name suffix")
     parser.add_argument("--fps", default=1, type=int, help="Frame extraction rate")
-    parser.add_argument("--prompts-file", type=str, default=None, help="Path to prompts.txt (one prompt per line)")
-    parser.add_argument("--llava", action="store_true", help="Use LLaVA instead of OpenCLIP")
-    parser.add_argument("--llava-model", type=str, default="llava-hf/llava-v1.6-vicuna-7b-hf", help="LLaVA model id")
-    parser.add_argument("--max-frames", type=int, default=8, help="Max frames to analyze")
     args = parser.parse_args()
 
-    if args.frames_dir:
-        frames_dir = Path(args.frames_dir)
-        if not frames_dir.exists():
-            print(f"Frames dir not found: {frames_dir}")
-            sys.exit(1)
-        print(f"Using existing frames at: {frames_dir}")
-    else:
-        video = Path(args.video)
-        if not video.exists():
-            print(f"Video not found: {video}")
-            sys.exit(1)
-        frames_dir = Path("results") / (Path(args.out_name).stem + "_frames")
-        print(f"Extracting frames to: {frames_dir}")
-        extract_frames(video, frames_dir, fps=args.fps)
+    video = Path(args.video)
+    if not video.exists():
+        print(f"Video not found: {video}")
+        sys.exit(1)
 
-    prompts = load_prompts(Path(args.prompts_file) if args.prompts_file else None)
+    frames_dir = Path("results") / (Path(args.out_name).stem + "_frames")
+    print(f"Extracting frames to: {frames_dir}")
+    extract_frames(video, frames_dir, fps=args.fps)
 
-    if args.llava:
-        print("Captioning frames with LLaVA...")
-        inferred = caption_frames_with_llava(
-            frames_dir,
-            prompts,
-            model_id=args.llava_model,
-            max_frames=args.max_frames,
-        )
-        print(f"Frames: {inferred['frames']}")
-        caps_preview = inferred.get("captions", [])[:2]
-        print(f"Sample captions: {caps_preview}")
-    else:
-        print("Scoring frames with OpenCLIP using provided prompts...")
-        inferred = score_frames_with_openclip(frames_dir, prompts)
-        print(f"Frames: {inferred['frames']}")
-        print(f"Top labels: {inferred['top_examples']}")
+    print("Scoring frames with OpenCLIP...")
+    inferred = score_frames_with_openclip(frames_dir)
+    print(f"Frames: {inferred['frames']}")
+    print(f"Top labels: {inferred['top_examples']}")
 
     # Write domain (generic)
     write_domain(Path("domain.pddl"))

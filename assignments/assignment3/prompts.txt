@@ -1,7 +1,0 @@
-a robot picking an object
-placing an object on a surface
-stacking two objects
-opening a container
-closing a container
-moving an object on a table
-putting an object in a box
