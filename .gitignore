@@ -185,3 +185,5 @@ runs/
 datasets/*
 
 .uv-cache
+.env
+.env.local

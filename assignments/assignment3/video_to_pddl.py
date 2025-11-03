@@ -16,9 +16,17 @@ Outputs:
 """
 
 import argparse
+import os
 import subprocess
 import sys
 from pathlib import Path
+
+# Load environment variables from .env file if it exists
+try:
+    from dotenv import load_dotenv
+    load_dotenv()
+except ImportError:
+    pass  # python-dotenv not installed, will use system env vars
 
 
 def extract_frames(video_path: Path, frames_dir: Path, fps: int = 1) -> None:
@@ -91,7 +99,7 @@ def score_frames_with_openclip(frames_dir: Path, prompts: list[str]) -> dict:
 def caption_frames_with_llava(
     frames_dir: Path,
     prompts: list[str],
-    model_id: str = "llava-hf/llava-1.6-vicuna-13b-hf",
+    model_id: str = "llava-hf/llava-v1.6-vicuna-7b-hf",
     max_frames: int = 8,
 ) -> dict:
     """Caption up to max_frames using LLaVA and return aggregated captions.
@@ -99,7 +107,7 @@ def caption_frames_with_llava(
     Requires GPU for reasonable speed. Falls back to CPU if necessary (slow).
     """
     try:
-        from transformers import AutoProcessor, LlavaForConditionalGeneration  # type: ignore
+        from transformers import LlavaProcessor, LlavaForConditionalGeneration  # type: ignore
         import torch  # type: ignore
         from PIL import Image  # type: ignore
     except Exception as e:
@@ -110,9 +118,12 @@ def caption_frames_with_llava(
     device = "cuda" if torch.cuda.is_available() else "cpu"
     dtype = torch.float16 if device == "cuda" else torch.float32
 
-    processor = AutoProcessor.from_pretrained(model_id)
+    # Get HF token from environment
+    hf_token = os.getenv("HF_TOKEN") or os.getenv("HUGGINGFACE_TOKEN")
+    
+    processor = LlavaProcessor.from_pretrained(model_id, token=hf_token)
     model = LlavaForConditionalGeneration.from_pretrained(
-        model_id, torch_dtype=dtype, low_cpu_mem_usage=True, device_map="auto"
+        model_id, torch_dtype=dtype, low_cpu_mem_usage=True, device_map="auto", token=hf_token
     )
 
     jpgs = sorted(frames_dir.glob("*.jpg"))[:max_frames]
@@ -173,14 +184,29 @@ def write_domain(domain_path: Path) -> None:
 
 def write_problem(problem_path: Path, name: str, inferred: dict) -> None:
     # Build problem from inferred prompts without hardcoding specific labels.
-    # We keep a generic object set; embed the top labels as a comment for traceability.
+    # We keep a generic object set; embed the top labels/captions as a comment for traceability.
     init = ["(clear obj1)", "(clear obj2)"]
     # Choose a neutral goal unless caller provides prompts oriented to a specific relation
     # Here we use a simple default; users can refine by editing the problem.
     goal = "(on obj1 table)"
 
+    # Handle both OpenCLIP output (top_examples) and LLaVA output (captions)
     top_labels = inferred.get("top_examples", [])
+    captions = inferred.get("captions", [])
     prompts_used = inferred.get("prompts", [])
+    instruction = inferred.get("instruction")
+
+    # Build comment section
+    comment_lines = []
+    if captions:
+        comment_lines.append(f"; LLaVA captions (frame, text): {captions}")
+        if instruction:
+            comment_lines.append(f"; Instruction used: {instruction}")
+    elif top_labels:
+        comment_lines.append(f"; Top labels (label, prob, frame): {top_labels}")
+    if prompts_used:
+        comment_lines.append(f"; Prompts used: {prompts_used}")
+    comment_section = "\n    ".join(comment_lines) if comment_lines else "; No analysis data"
 
     content = f"""(define (problem {name})
     (:domain robot-manipulation)
@@ -194,8 +220,7 @@ def write_problem(problem_path: Path, name: str, inferred: dict) -> None:
     (:goal
         {goal}
     )
-    ; Top labels (label, prob, frame): {top_labels}
-    ; Prompts used: {prompts_used}
+    {comment_section}
 )
 """
     problem_path.write_text(content)
@@ -210,7 +235,7 @@ def main():
     parser.add_argument("--fps", default=1, type=int, help="Frame extraction rate")
     parser.add_argument("--prompts-file", type=str, default=None, help="Path to prompts.txt (one prompt per line)")
     parser.add_argument("--llava", action="store_true", help="Use LLaVA instead of OpenCLIP")
-    parser.add_argument("--llava-model", type=str, default="llava-hf/llava-1.6-vicuna-13b-hf", help="LLaVA model id")
+    parser.add_argument("--llava-model", type=str, default="llava-hf/llava-v1.6-vicuna-7b-hf", help="LLaVA model id")
     parser.add_argument("--max-frames", type=int, default=8, help="Max frames to analyze")
     args = parser.parse_args()
 
