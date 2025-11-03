@@ -1,3 +1,7 @@
 assignments/assignment3/intrinsics.json filter=lfs diff=lfs merge=lfs -text
+assignments/assignment3/cam2base_extrinsics.json filter=lfs diff=lfs merge=lfs -text
+assignments/assignment3/camera_serials.json filter=lfs diff=lfs merge=lfs -text
+assignments/assignment3/droid_language_annotations.json filter=lfs diff=lfs merge=lfs -text
+assignments/assignment3/cam2base_extrinsic_superset.json filter=lfs diff=lfs merge=lfs -text
 assignments/assignment3/raw_videos/**/*.mp4 filter=lfs diff=lfs merge=lfs -text
 *.mp4 filter=lfs diff=lfs merge=lfs -text
