@@ -1,13 +1,14 @@
-"""Generate PDDL domain and problem from a single video/frames using OpenCLIP.
+"""Generate PDDL domain and problem from a single video/frames using VLMs (LLaVA or OpenCLIP).
 
 Usage:
   # Using an existing frames directory (recommended)
+  # Using an existing frames directory (recommended)
   python video_to_pddl.py --frames-dir results/video_episode/frames \
-      --out-name screenrecording --prompts-file prompts.txt
+      --out-name screenrecording --prompts-file prompts.txt --llava
 
   # Or from a video (will extract frames first)
   python video_to_pddl.py --video "Screen Recording 2025-10-29 220851.mp4" \
-      --out-name screenrecording --fps 1 --prompts-file prompts.txt
+      --out-name screenrecording --fps 1 --prompts-file prompts.txt --llava
 
 Outputs:
   - domain.pddl (in current dir)
@@ -87,6 +88,59 @@ def score_frames_with_openclip(frames_dir: Path, prompts: list[str]) -> dict:
     }
 
 
+def caption_frames_with_llava(
+    frames_dir: Path,
+    prompts: list[str],
+    model_id: str = "llava-hf/llava-1.6-vicuna-13b-hf",
+    max_frames: int = 8,
+) -> dict:
+    """Caption up to max_frames using LLaVA and return aggregated captions.
+
+    Requires GPU for reasonable speed. Falls back to CPU if necessary (slow).
+    """
+    try:
+        from transformers import AutoProcessor, LlavaForConditionalGeneration  # type: ignore
+        import torch  # type: ignore
+        from PIL import Image  # type: ignore
+    except Exception as e:
+        raise RuntimeError(
+            "LLaVA dependencies missing. Install: pip install 'transformers>=4.41' accelerate safetensors sentencepiece pillow"
+        ) from e
+
+    device = "cuda" if torch.cuda.is_available() else "cpu"
+    dtype = torch.float16 if device == "cuda" else torch.float32
+
+    processor = AutoProcessor.from_pretrained(model_id)
+    model = LlavaForConditionalGeneration.from_pretrained(
+        model_id, torch_dtype=dtype, low_cpu_mem_usage=True, device_map="auto"
+    )
+
+    jpgs = sorted(frames_dir.glob("*.jpg"))[:max_frames]
+    if not jpgs:
+        return {"captions": [], "frames": 0, "prompts": prompts}
+
+    # Use first prompt as instruction, or a default
+    instruction = prompts[0] if prompts else "Describe the manipulation actions and objects. Be concise."
+    captions: list[tuple[str, str]] = []  # (frame, text)
+
+    for img_path in jpgs:
+        image = Image.open(img_path).convert("RGB")
+        message = [
+            {"role": "user", "content": [
+                {"type": "text", "text": instruction},
+                {"type": "image"},
+            ]}
+        ]
+        chat = processor.apply_chat_template(message, add_generation_prompt=True)
+        inputs = processor(images=image, text=chat, return_tensors="pt").to(device, dtype=dtype)
+        with torch.no_grad():
+            output = model.generate(**inputs, max_new_tokens=128)
+        text = processor.decode(output[0], skip_special_tokens=True)
+        captions.append((img_path.name, text))
+
+    return {"captions": captions, "frames": len(jpgs), "prompts": prompts, "instruction": instruction}
+
+
 def write_domain(domain_path: Path) -> None:
     content = """(define (domain robot-manipulation)
     (:requirements :strips :typing)
@@ -148,13 +202,16 @@ def write_problem(problem_path: Path, name: str, inferred: dict) -> None:
 
 
 def main():
-    parser = argparse.ArgumentParser(description="Single video/frames to PDDL (OpenCLIP)")
+    parser = argparse.ArgumentParser(description="Single video/frames to PDDL (LLaVA or OpenCLIP)")
     grp = parser.add_mutually_exclusive_group(required=True)
     grp.add_argument("--video", type=str, help="Path to video file")
     grp.add_argument("--frames-dir", type=str, help="Existing frames directory")
     parser.add_argument("--out-name", default="video_problem", type=str, help="Problem name suffix")
     parser.add_argument("--fps", default=1, type=int, help="Frame extraction rate")
     parser.add_argument("--prompts-file", type=str, default=None, help="Path to prompts.txt (one prompt per line)")
+    parser.add_argument("--llava", action="store_true", help="Use LLaVA instead of OpenCLIP")
+    parser.add_argument("--llava-model", type=str, default="llava-hf/llava-1.6-vicuna-13b-hf", help="LLaVA model id")
+    parser.add_argument("--max-frames", type=int, default=8, help="Max frames to analyze")
     args = parser.parse_args()
 
     if args.frames_dir:
@@ -173,10 +230,23 @@ def main():
         extract_frames(video, frames_dir, fps=args.fps)
 
     prompts = load_prompts(Path(args.prompts_file) if args.prompts_file else None)
-    print("Scoring frames with OpenCLIP using provided prompts...")
-    inferred = score_frames_with_openclip(frames_dir, prompts)
-    print(f"Frames: {inferred['frames']}")
-    print(f"Top labels: {inferred['top_examples']}")
+
+    if args.llava:
+        print("Captioning frames with LLaVA...")
+        inferred = caption_frames_with_llava(
+            frames_dir,
+            prompts,
+            model_id=args.llava_model,
+            max_frames=args.max_frames,
+        )
+        print(f"Frames: {inferred['frames']}")
+        caps_preview = inferred.get("captions", [])[:2]
+        print(f"Sample captions: {caps_preview}")
+    else:
+        print("Scoring frames with OpenCLIP using provided prompts...")
+        inferred = score_frames_with_openclip(frames_dir, prompts)
+        print(f"Frames: {inferred['frames']}")
+        print(f"Top labels: {inferred['top_examples']}")
 
     # Write domain (generic)
     write_domain(Path("domain.pddl"))
