@@ -1,0 +1,57 @@
+{
+  "episode_id": "TRI+938130c4+2023-08-09-11h-38m-48s",
+  "instruction": "Pick up the green block from the white plate and put it inside the clear white bowl",
+  "video_path": "correct_new_scripts/raw_videos/TRI+938130c4+2023-08-09-11h-38m-48s/recordings/MP4/29838012.mp4",
+  "analysis": {
+    "initial_state": {
+      "objects": [
+        {
+          "name": "robot_arm",
+          "location": "on the right side of the table",
+          "color": "white"
+        },
+        {
+          "name": "white_box",
+          "location": "on the table near the center",
+          "color": "white"
+        },
+        {
+          "name": "small_blue_cube",
+          "location": "on the table near the white box",
+          "color": "blue"
+        },
+        {
+          "name": "yellow_cube",
+          "location": "on the table near the white box",
+          "color": "yellow"
+        }
+      ],
+      "robot_holding": null
+    },
+    "sequence_of_actions": [
+      "pick up small_blue_cube",
+      "place small_blue_cube in white_box"
+    ],
+    "final_state": {
+      "objects": [
+        {
+          "name": "robot_arm",
+          "location": "on the right side of the table",
+          "color": "white"
+        },
+        {
+          "name": "white_box",
+          "location": "on the table near the center",
+          "color": "white",
+          "contains": "small_blue_cube"
+        },
+        {
+          "name": "yellow_cube",
+          "location": "on the table near the white box",
+          "color": "yellow"
+        }
+      ],
+      "robot_holding": null
+    }
+  }
+}

@@ -36,7 +36,7 @@ ANNOTATIONS_FILE = "droid_language_annotations.json"
 VIDEO_DIR = "raw_videos"
 OUTPUT_DOMAIN_FILE = "domain.pddl"
 OUTPUT_PROBLEM_DIR = "problems"
-SAMPLE_SIZE = 10  # Number of videos to process
+SAMPLE_SIZE = 15  # Number of videos to process
 BLOCK_KEYWORDS = ["block", "stack", "place", "put", "pick", "move", "remove"]
 FRAME_RATE = 4  # FPS for video analysis (matches model training)
 
@@ -119,22 +119,42 @@ def analyze_sequential_video(
     if not video_path.exists():
         return {"error": f"Video file not found: {video_path}"}
     
+    # Check if video file is valid (not a placeholder)
+    video_size = video_path.stat().st_size
+    if video_size < 1000:  # Less than 1KB is likely a placeholder
+        return {"error": f"Video file appears to be corrupted or incomplete (size: {video_size} bytes). Please re-download the video."}
+    
     print(f"   📹 Analyzing video with Cosmos-Reason1-7B (transformers)...")
+    print(f"      Video size: {video_size / (1024*1024):.2f} MB")
     
     # Create sequential analysis prompt for Cosmos-Reason1-7B
-    prompt_text = f"""You are analyzing a robot manipulation video. Your task is to understand:
+    prompt_text = f"""You are analyzing a robot manipulation video. Your task is to understand the complete state of objects and what changes.
+
+CRITICAL REQUIREMENTS:
+1. LIST ALL OBJECTS: You MUST include EVERY object that appears in the video (blocks, containers, cups, bowls, etc.)
+2. CONSISTENT NAMING: Use consistent names for the same object across initial_state and final_state
+3. COMPLETE STATES: Both initial_state and final_state MUST list ALL objects, not just the ones being manipulated
+4. COLOR INFORMATION: Always include color for every object (e.g., "green", "yellow", "blue", "black", "white")
+5. OBJECT TYPES: Clearly identify if objects are blocks, containers (cups/bowls), or other types
 
 1. INITIAL STATE (start of video):
-   - List all objects present (blocks, containers, etc.) with their colors
-   - Describe where each object is located (e.g., "green_block on table", "yellow_block in blue_cup", "orange_block on green_block")
-   - Note any objects being held by the robot
+   - List ALL objects present (blocks, containers, etc.) with their colors
+   - Describe where each object is located using EXACT location format:
+     * "on table" for objects on the table
+     * "in [container_name]" for objects inside containers (e.g., "in white_bowl")
+     * "on [block_name]" for blocks stacked on other blocks
+   - Include ALL objects visible, even if they won't be manipulated
+   - Note any objects being held by the robot (usually null at start)
 
 2. SEQUENCE OF ACTIONS (what happens in the video):
    - Describe the sequence of actions performed (pick up, place, stack, etc.)
+   - Be specific about which objects are involved
 
 3. FINAL STATE (end of video):
-   - List where each object ends up (e.g., "green_block in black_bowl", "orange_block on green_block")
-   - Describe the final configuration
+   - List where EACH object ends up (ALL objects from initial_state must be listed)
+   - Use EXACT location format same as initial_state
+   - Include objects that didn't move (they should have the same location as initial_state)
+   - Describe the final configuration of ALL objects
 
 Instruction: {instruction}
 
@@ -143,7 +163,8 @@ Provide your analysis in JSON format with this exact structure:
   "initial_state": {{
     "objects": [
       {{"name": "green_block", "location": "on table", "color": "green"}},
-      {{"name": "blue_cup", "location": "on table", "color": "blue"}}
+      {{"name": "blue_cup", "location": "on table", "color": "blue"}},
+      {{"name": "yellow_block", "location": "on table", "color": "yellow"}}
     ],
     "robot_holding": null
   }},
@@ -154,7 +175,8 @@ Provide your analysis in JSON format with this exact structure:
   "final_state": {{
     "objects": [
       {{"name": "green_block", "location": "in blue_cup", "color": "green"}},
-      {{"name": "blue_cup", "location": "on table", "color": "blue"}}
+      {{"name": "blue_cup", "location": "on table", "color": "blue"}},
+      {{"name": "yellow_block", "location": "on table", "color": "yellow"}}
     ],
     "robot_holding": null
   }},
@@ -162,11 +184,13 @@ Provide your analysis in JSON format with this exact structure:
   "predicates": ["on-table", "in", "on", "clear", "holding"]
 }}
 
-Focus on:
-- Physical objects (blocks, containers/cups/bowls) - DO NOT include surfaces like tables
-- Clear spatial relationships (on, in, clear)
-- Color information for all objects
-- Precise initial and final states"""
+IMPORTANT:
+- Every object in initial_state MUST appear in final_state (with potentially different location)
+- Use consistent object names (same name = same object)
+- Include color for EVERY object
+- Do NOT skip objects that don't move - they still need to be in both states
+- Be precise about locations: "on table" vs "in [container]" vs "on [block]"
+- Focus on physical objects (blocks, containers/cups/bowls) - DO NOT include surfaces like tables"""
 
     try:
         # Create messages for Qwen2.5-VL format
@@ -732,7 +756,7 @@ def generate_problem_pddl(video_id: str, instruction: str, analysis: Dict, outpu
                     if "table" in obj_name_clean or "surface" in obj_name_clean or "straw" in obj_name_clean or "mug" in obj_name_clean:
                         continue
                     
-                    # Add object if not already added
+                    # Add object if not already added (from initial state)
                     if obj_name_clean and obj_name_clean not in seen_objects:
                         seen_objects.add(obj_name_clean)
                         if "block" in obj_name_clean or "cube" in obj_name_clean:
@@ -740,7 +764,7 @@ def generate_problem_pddl(video_id: str, instruction: str, analysis: Dict, outpu
                         elif "cup" in obj_name_clean or "bowl" in obj_name_clean:
                             objects_list.append(f"{obj_name_clean} - container")
                     
-                    # Extract goal predicates from location (only for objects we added)
+                    # Extract goal predicates from location (only for objects we've added)
                     if obj_name_clean and obj_name_clean in seen_objects:
                         location_lower = obj_location.lower()
                         if "in " in location_lower:
@@ -794,11 +818,106 @@ def generate_problem_pddl(video_id: str, instruction: str, analysis: Dict, outpu
                                 objects_list.append(f"{target_name} - block")
                             goal_predicates.append(f"(on {obj_name_clean} {target_name})")
                         elif "on table" in location_lower:
+                            # Only add if this object was NOT on table in initial state
+                            # (otherwise it's redundant and will be filtered out)
                             goal_predicates.append(f"(on-table {obj_name_clean})")
     
     # Add robot if not present
     if "robot1" not in seen_objects:
         objects_list.append("robot1 - robot")
+    
+    # Ensure we have objects from both initial and final states
+    # Cross-reference to make sure all objects are accounted for
+    if isinstance(initial_state, dict) and "objects" in initial_state and isinstance(final_state, dict) and "objects" in final_state:
+        initial_obj_names = set()
+        final_obj_names = set()
+        
+        # Extract normalized names from initial state
+        for obj_data in initial_state.get("objects", []):
+            if isinstance(obj_data, dict):
+                obj_name = obj_data.get("name", "")
+                obj_color = obj_data.get("color", "")
+                if obj_color and obj_name:
+                    if "block" in obj_name.lower() or "cube" in obj_name.lower() or "rectangular" in obj_name.lower() or "cylindrical" in obj_name.lower():
+                        initial_obj_names.add(f"{obj_color.lower()}_block")
+                    elif "cup" in obj_name.lower():
+                        initial_obj_names.add(f"{obj_color.lower()}_cup")
+                    elif "bowl" in obj_name.lower() or "container" in obj_name.lower():
+                        initial_obj_names.add(f"{obj_color.lower()}_bowl")
+        
+        # Extract normalized names from final state
+        for obj_data in final_state.get("objects", []):
+            if isinstance(obj_data, dict):
+                obj_name = obj_data.get("name", "")
+                obj_color = obj_data.get("color", "")
+                if obj_color and obj_name:
+                    if "block" in obj_name.lower() or "cube" in obj_name.lower() or "rectangular" in obj_name.lower() or "cylindrical" in obj_name.lower():
+                        final_obj_names.add(f"{obj_color.lower()}_block")
+                    elif "cup" in obj_name.lower():
+                        final_obj_names.add(f"{obj_color.lower()}_cup")
+                    elif "bowl" in obj_name.lower() or "container" in obj_name.lower():
+                        final_obj_names.add(f"{obj_color.lower()}_bowl")
+        
+        # Check if any objects are missing
+        all_obj_names = initial_obj_names.union(final_obj_names)
+        missing_objects = all_obj_names - seen_objects
+        
+        if missing_objects:
+            print(f"      ⚠️  Warning: Some objects from analysis not properly extracted: {missing_objects}")
+            # Try to add missing objects
+            for obj_name_clean in missing_objects:
+                if obj_name_clean not in seen_objects:
+                    seen_objects.add(obj_name_clean)
+                    if "block" in obj_name_clean or "cube" in obj_name_clean:
+                        objects_list.append(f"{obj_name_clean} - block")
+                    elif "cup" in obj_name_clean or "bowl" in obj_name_clean:
+                        objects_list.append(f"{obj_name_clean} - container")
+                    
+                    # Add default initial predicates for missing objects
+                    # Check if it's in initial state to get proper location
+                    in_initial_state = False
+                    for obj_data in initial_state.get("objects", []):
+                        if isinstance(obj_data, dict):
+                            obj_name = obj_data.get("name", "")
+                            obj_color = obj_data.get("color", "")
+                            if obj_color and obj_name:
+                                normalized_name = None
+                                if "block" in obj_name.lower() or "cube" in obj_name.lower():
+                                    normalized_name = f"{obj_color.lower()}_block"
+                                elif "cup" in obj_name.lower():
+                                    normalized_name = f"{obj_color.lower()}_cup"
+                                elif "bowl" in obj_name.lower():
+                                    normalized_name = f"{obj_color.lower()}_bowl"
+                                
+                                if normalized_name == obj_name_clean:
+                                    in_initial_state = True
+                                    location_lower = obj_data.get("location", "").lower()
+                                    if "on table" in location_lower:
+                                        init_predicates.append(f"(on-table {obj_name_clean})")
+                                        init_predicates.append(f"(clear {obj_name_clean})")
+                                    elif "in " in location_lower:
+                                        # Will be handled by existing logic
+                                        pass
+                                    break
+                    
+                    # If not found in initial state, assume it's on table (default)
+                    if not in_initial_state:
+                        init_predicates.append(f"(on-table {obj_name_clean})")
+                        init_predicates.append(f"(clear {obj_name_clean})")
+    
+    # Ensure all objects in objects_list have initial predicates
+    declared_object_names_from_list = set()
+    for obj_decl in objects_list:
+        obj_name = obj_decl.split(" - ")[0].strip()
+        declared_object_names_from_list.add(obj_name)
+        
+        # Check if this object has any initial predicates
+        has_init_predicate = any(obj_name in pred for pred in init_predicates)
+        if not has_init_predicate and obj_name != "robot1":
+            # Add default initial state (on table, clear)
+            init_predicates.append(f"(on-table {obj_name})")
+            init_predicates.append(f"(clear {obj_name})")
+            print(f"      ⚠️  Warning: Added default initial state for {obj_name}")
     
     # Add robot initial state
     init_predicates.insert(0, "(empty robot1)")
@@ -917,12 +1036,92 @@ def generate_problem_pddl(video_id: str, instruction: str, analysis: Dict, outpu
                     goal_predicates = [f"(on-table {block_name})"]
                     break
     
+    # Filter goal predicates to only include those that represent actual manipulations
+    # (i.e., predicates that differ from the initial state)
+    init_predicates_set = set(pred.strip() for pred in init_predicates)
+    manipulation_goal_predicates = []
+    for goal_pred in goal_predicates:
+        goal_pred_normalized = goal_pred.strip()
+        # Only include goal predicates that are NOT already in the initial state
+        if goal_pred_normalized not in init_predicates_set:
+            manipulation_goal_predicates.append(goal_pred)
+    
+    goal_predicates = manipulation_goal_predicates
+    
+    # Validate that all objects referenced in goal predicates exist in objects_list
+    # Extract object names from objects_list
+    declared_object_names = set()
+    for obj_decl in objects_list:
+        obj_name = obj_decl.split(" - ")[0].strip()
+        declared_object_names.add(obj_name)
+    
+    # Filter goal predicates to only include those referencing declared objects
+    valid_goal_predicates = []
+    for goal_pred in goal_predicates:
+        # Extract all object names from the predicate
+        import re
+        # Find all object names (words that appear in declared_object_names)
+        pred_words = re.findall(r'\b\w+\b', goal_pred)
+        referenced_objects = [word for word in pred_words if word in declared_object_names]
+        
+        # Also check for underscore-separated names
+        underscore_names = re.findall(r'\b\w+_\w+\b', goal_pred)
+        for name in underscore_names:
+            if name in declared_object_names:
+                referenced_objects.append(name)
+        
+        # If predicate references at least one declared object, keep it
+        # If it references undeclared objects, skip it
+        if referenced_objects:
+            # Check if all referenced objects are declared
+            all_declared = all(obj in declared_object_names for obj in referenced_objects + underscore_names)
+            if all_declared or not underscore_names:  # Allow if no underscore names or all are declared
+                valid_goal_predicates.append(goal_pred)
+    
+    goal_predicates = valid_goal_predicates
+    
+    # If no valid goal predicates after filtering, try to infer from instruction
+    if not goal_predicates and objects_list:
+        # Try to infer from instruction if we have objects
+        # Ensure instruction is a string
+        if isinstance(instruction, dict):
+            instruction_str = instruction.get("text", instruction.get("instruction", ""))
+        elif not isinstance(instruction, str):
+            instruction_str = str(instruction) if instruction else ""
+        else:
+            instruction_str = instruction
+        
+        instruction_lower = instruction_str.lower() if instruction_str else ""
+        if "in" in instruction_lower and any("container" in obj or "cup" in obj or "bowl" in obj for obj in objects_list):
+            # Find a block and container
+            blocks = [obj.split(" - ")[0] for obj in objects_list if "block" in obj]
+            containers = [obj.split(" - ")[0] for obj in objects_list if "container" in obj or "cup" in obj or "bowl" in obj]
+            if blocks and containers:
+                goal_predicates = [f"(in {blocks[0]} {containers[0]})"]
+        elif "on" in instruction_lower and any("block" in obj for obj in objects_list):
+            # Stacking scenario
+            blocks = [obj.split(" - ")[0] for obj in objects_list if "block" in obj]
+            if len(blocks) >= 2:
+                goal_predicates = [f"(on {blocks[1]} {blocks[0]})"]
+    
     # Build problem file content
     problem_name = video_id.replace('+', '_').replace('-', '_')
     
     objects_section = "\n        ".join(objects_list) if objects_list else "robot1 - robot"
     init_section = "\n        ".join(init_predicates)
-    goal_section = "\n            ".join(goal_predicates) if len(goal_predicates) > 1 else goal_predicates[0] if goal_predicates else "(on-table block1)"
+    
+    # Ensure goal section only uses declared objects
+    if goal_predicates:
+        goal_section = "\n            ".join(goal_predicates) if len(goal_predicates) > 1 else goal_predicates[0]
+    else:
+        # Last resort: if we have blocks, use first block (but warn)
+        if any("block" in obj for obj in objects_list):
+            first_block = next(obj.split(" - ")[0] for obj in objects_list if "block" in obj)
+            goal_section = f"(on-table {first_block})"
+            print(f"      ⚠️  Warning: Using fallback goal for {video_id}")
+        else:
+            goal_section = "(empty robot1)"  # Empty goal if no objects
+            print(f"      ⚠️  Warning: No valid goal predicates for {video_id}")
     
     # Format goal section properly
     if len(goal_predicates) > 1:

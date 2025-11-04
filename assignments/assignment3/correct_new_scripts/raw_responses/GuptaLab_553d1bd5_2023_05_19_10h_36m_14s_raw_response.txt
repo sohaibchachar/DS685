@@ -1,0 +1,44 @@
+Episode ID: GuptaLab+553d1bd5+2023-05-19-10h-36m-14s
+Instruction: Put the orange block on the green block
+Video Path: correct_new_scripts/raw_videos/GuptaLab+553d1bd5+2023-05-19-10h-36m-14s/recordings/MP4/26638268.mp4
+================================================================================
+RAW VLM RESPONSE:
+================================================================================
+```json
+{
+  "initial_state": {
+    "objects": [
+      {
+        "name": "red_block",
+        "location": "on table",
+        "color": "red"
+      },
+      {
+        "name": "green_block",
+        "location": "on table",
+        "color": "green"
+      }
+    ],
+    "robot_holding": null
+  },
+  "sequence_of_actions": [
+    "pick up red_block",
+    "place red_block on green_block"
+  ],
+  "final_state": {
+    "objects": [
+      {
+        "name": "red_block",
+        "location": "on green_block",
+        "color": "red"
+      },
+      {
+        "name": "green_block",
+        "location": "on table",
+        "color": "green"
+      }
+    ],
+    "robot_holding": null
+  }
+}
+```

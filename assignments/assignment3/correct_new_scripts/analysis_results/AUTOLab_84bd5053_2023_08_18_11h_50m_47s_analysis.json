@@ -1,0 +1,51 @@
+{
+  "episode_id": "AUTOLab+84bd5053+2023-08-18-11h-50m-47s",
+  "instruction": "Put the yellow block in the blue cup",
+  "video_path": "correct_new_scripts/raw_videos/AUTOLab+84bd5053+2023-08-18-11h-50m-47s/recordings/MP4/24400334.mp4",
+  "analysis": {
+    "initial_state": {
+      "objects": [
+        {
+          "name": "red_block",
+          "location": "on table",
+          "color": "red"
+        },
+        {
+          "name": "blue_cup",
+          "location": "on table",
+          "color": "blue"
+        },
+        {
+          "name": "yellow_block",
+          "location": "on table",
+          "color": "yellow"
+        }
+      ],
+      "robot_holding": null
+    },
+    "sequence_of_actions": [
+      "pick up red_block",
+      "place red_block in blue_cup"
+    ],
+    "final_state": {
+      "objects": [
+        {
+          "name": "red_block",
+          "location": "in blue_cup",
+          "color": "red"
+        },
+        {
+          "name": "blue_cup",
+          "location": "on table",
+          "color": "blue"
+        },
+        {
+          "name": "yellow_block",
+          "location": "on table",
+          "color": "yellow"
+        }
+      ],
+      "robot_holding": null
+    }
+  }
+}

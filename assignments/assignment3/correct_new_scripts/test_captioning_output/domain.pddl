@@ -86,4 +86,10 @@
             (not (in ?x ?c))
         )
     )
+
+    (:action place
+        :parameters (?r - robot ?b - block ?o - object)
+        :precondition (and (holding ?r ?b) (clear ?o))
+        :effect (and (on ?b ?o) (not (holding ?r ?b)) (clear ?b))
+    )
 )

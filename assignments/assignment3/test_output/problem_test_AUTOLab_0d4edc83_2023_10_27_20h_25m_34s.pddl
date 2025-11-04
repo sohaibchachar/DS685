@@ -1,4 +1,4 @@
-(define (problem AUTOLab_0d4edc83_2023_10_27_20h_25m_34s)
+(define (problem test_AUTOLab_0d4edc83_2023_10_27_20h_25m_34s)
     (:domain robot-manipulation)
     (:objects
         green_block - block

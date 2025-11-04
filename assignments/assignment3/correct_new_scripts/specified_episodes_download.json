@@ -1,0 +1,47 @@
+{
+  "requested": {
+    "AUTOLab+0d4edc83+2023-10-27-20h-25m-34s": "22008760.mp4",
+    "AUTOLab+84bd5053+2023-08-17-17h-22m-31s": "24400334.mp4",
+    "AUTOLab+84bd5053+2023-08-18-11h-50m-47s": "24400334.mp4",
+    "AUTOLab+84bd5053+2023-08-18-12h-00m-11s": "24400334.mp4",
+    "GuptaLab+553d1bd5+2023-05-19-10h-36m-14s": "26638268.mp4",
+    "RAD+c6cf6b42+2023-08-31-14h-00m-49s": "35215462.mp4",
+    "RAIL+d027f2ae+2023-06-05-16h-33m-01s": "24259877.mp4",
+    "TRI+52ca9b6a+2024-01-16-16h-43m-04s": "25947356.mp4"
+  },
+  "successful": [
+    {
+      "episode_id": "AUTOLab+0d4edc83+2023-10-27-20h-25m-34s",
+      "video": "22008760.mp4"
+    },
+    {
+      "episode_id": "AUTOLab+84bd5053+2023-08-17-17h-22m-31s",
+      "video": "24400334.mp4"
+    },
+    {
+      "episode_id": "AUTOLab+84bd5053+2023-08-18-11h-50m-47s",
+      "video": "24400334.mp4"
+    },
+    {
+      "episode_id": "AUTOLab+84bd5053+2023-08-18-12h-00m-11s",
+      "video": "24400334.mp4"
+    },
+    {
+      "episode_id": "GuptaLab+553d1bd5+2023-05-19-10h-36m-14s",
+      "video": "26638268.mp4"
+    },
+    {
+      "episode_id": "RAD+c6cf6b42+2023-08-31-14h-00m-49s",
+      "video": "35215462.mp4"
+    },
+    {
+      "episode_id": "RAIL+d027f2ae+2023-06-05-16h-33m-01s",
+      "video": "24259877.mp4"
+    },
+    {
+      "episode_id": "TRI+52ca9b6a+2024-01-16-16h-43m-04s",
+      "video": "25947356.mp4"
+    }
+  ],
+  "failed": []
+}

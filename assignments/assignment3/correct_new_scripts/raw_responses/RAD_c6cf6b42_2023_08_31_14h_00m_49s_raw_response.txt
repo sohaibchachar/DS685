@@ -1,0 +1,54 @@
+Episode ID: RAD+c6cf6b42+2023-08-31-14h-00m-49s
+Instruction: Remove the green block from the bowl and put it on the table
+Video Path: correct_new_scripts/raw_videos/RAD+c6cf6b42+2023-08-31-14h-00m-49s/recordings/MP4/35215462.mp4
+================================================================================
+RAW VLM RESPONSE:
+================================================================================
+```json
+{
+  "initial_state": {
+    "objects": [
+      {
+        "name": "white_bowl",
+        "location": "on table",
+        "color": "white"
+      },
+      {
+        "name": "green_cube",
+        "location": "on table",
+        "color": "green"
+      },
+      {
+        "name": "white_mug",
+        "location": "on table",
+        "color": "white"
+      }
+    ],
+    "robot_holding": null
+  },
+  "sequence_of_actions": [
+    "pick up green_cube",
+    "place green_cube in white_bowl"
+  ],
+  "final_state": {
+    "objects": [
+      {
+        "name": "white_bowl",
+        "location": "on table",
+        "color": "white"
+      },
+      {
+        "name": "green_cube",
+        "location": "in white_bowl",
+        "color": "green"
+      },
+      {
+        "name": "white_mug",
+        "location": "on table",
+        "color": "white"
+      }
+    ],
+    "robot_holding": null
+  }
+}
+```
