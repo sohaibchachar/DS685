@@ -1,0 +1,44 @@
+# Large model files (should be downloaded, not committed)
+models/
+*.bin
+*.safetensors
+*.pt
+*.pth
+*.ckpt
+
+# Video files (too large for git, should use LFS or external storage)
+raw_videos/**/*.mp4
+raw_videos/**/*.avi
+raw_videos/**/*.mov
+
+# Extracted frames (not needed - model processes videos directly)
+frames/
+*.jpg
+*.jpeg
+*.png
+
+# Python cache
+__pycache__/
+*.pyc
+*.pyo
+
+# Virtual environment
+.venv/
+venv/
+env/
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# Generated outputs
+problems/*.pddl
+domain.pddl
+
+# Temporary files
+*.tmp
+*.log
+.DS_Store
+
