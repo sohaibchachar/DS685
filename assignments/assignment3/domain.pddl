@@ -14,13 +14,6 @@
         (in ?x - block ?c - container)
         (on ?x - block ?y - block)
         (on-table ?x - block)
-        clear
-        holding
-        horizontal
-        in
-        on
-        on-table
-        stacked_on
     )
     
     (:action pick-up
