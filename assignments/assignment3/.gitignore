@@ -6,10 +6,6 @@ models/
 *.pth
 *.ckpt
 
-# Video files (too large for git, should use LFS or external storage)
-raw_videos/**/*.mp4
-raw_videos/**/*.avi
-raw_videos/**/*.mov
 
 # Extracted frames (not needed - model processes videos directly)
 frames/
@@ -33,9 +29,6 @@ env/
 *.swp
 *.swo
 
-# Generated outputs
-problems/*.pddl
-domain.pddl
 
 # Temporary files
 *.tmp

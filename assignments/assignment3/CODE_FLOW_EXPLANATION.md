@@ -30,18 +30,24 @@ This script generates PDDL (Planning Domain Definition Language) domain and prob
 - **Purpose**: Extract initial state, final state, and action sequence from each video
 - **Process**:
   For each video:
-  1. **Load video** using Qwen2.5-VL processor
+  1. **Load video directly** - Cosmos-Reason1-7B uses Qwen2.5-VL processor which can handle video files directly
+     - No need to extract frames - the model processes the entire video sequence
+     - Video path is passed directly: `{"type": "video", "video": str(video_path), "fps": 4}`
   2. **Create prompt** asking Cosmos to analyze:
      - Initial state: What objects are present and where they are at the start
      - Sequence of actions: What happens in the video
      - Final state: Where objects end up
-  3. **Generate analysis** using Cosmos model
+  3. **Generate analysis** using Cosmos model (processes video internally)
   4. **Parse JSON response** from Cosmos (handles malformed JSON)
   5. Returns: Dictionary with `initial_state`, `final_state`, `sequence_of_actions`, etc.
 
 **Key Function**: `analyze_sequential_video(processor, model, device, video_path, instruction)`
-- Uses video input (not individual frames) for sequential understanding
+- Uses video file input (not individual frames) for sequential understanding
+- The model internally samples frames from the video at the specified FPS (4 fps)
 - Extracts structured JSON about object states and actions
+- **No frames folder needed** - everything is handled in-memory
+
+**Note**: The `FRAME_RATE = 4` parameter tells the model how many frames per second to sample from the video for analysis. The actual frame extraction and processing is done internally by the Qwen2.5-VL processor - you don't need to extract frames yourself!
 
 ### STEP 4: Generate Domain from Analyses (`generate_domain_from_analyses()`)
 - **Purpose**: Create a unified PDDL domain file based on patterns discovered across all videos
