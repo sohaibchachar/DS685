@@ -1,0 +1,34 @@
+{
+  "episode_id": "TRI+52ca9b6a+2024-01-16-16h-43m-04s",
+  "instruction": "Pick up the orange rectangular block and place it horizontally on the green cylindrical block",
+  "operators": [
+    {
+      "name": "put_in_container",
+      "preconditions": [
+        "(on-table ?b)",
+        "(clear ?b)"
+      ],
+      "effects": [
+        "(holding ?r ?b)"
+      ]
+    }
+  ],
+  "predicates": [
+    "on-table",
+    "holding",
+    "clear"
+  ],
+  "keyframes": 7,
+  "captions": [
+    "a baby in a stroll chair",
+    "a table with a chair and a lamp",
+    "a chair with a computer on it",
+    "a desk with a lamp, a cup and a book",
+    "a table with a chair and a lamp",
+    "a chair with a light on it and a lamp",
+    "a robot sitting at a table with a laptop"
+  ],
+  "verified": true,
+  "solvability_score": 0.5,
+  "solve_error": "No available OperationMode.ONESHOT_PLANNER engine"
+}

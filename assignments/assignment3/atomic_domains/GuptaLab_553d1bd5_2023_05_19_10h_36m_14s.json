@@ -1,0 +1,32 @@
+{
+  "episode_id": "GuptaLab+553d1bd5+2023-05-19-10h-36m-14s",
+  "instruction": "Put the orange block on the green block",
+  "operators": [
+    {
+      "name": "manipulate_object",
+      "preconditions": [
+        "(on-table ?b)",
+        "(clear ?b)"
+      ],
+      "effects": [
+        "(holding ?r ?b)"
+      ]
+    }
+  ],
+  "predicates": [
+    "on-table",
+    "holding",
+    "clear"
+  ],
+  "keyframes": 5,
+  "captions": [
+    "a wooden table",
+    "a wooden table",
+    "a robot is standing on a desk in a room",
+    "a desk with a laptop and a monitor",
+    "a wooden table"
+  ],
+  "verified": true,
+  "solvability_score": 0.5,
+  "solve_error": "No available OperationMode.ONESHOT_PLANNER engine"
+}

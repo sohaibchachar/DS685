@@ -1,0 +1,6 @@
+(define (problem test)
+    (:domain TRI_52ca9b6a_2024_01_16_16h_43m_04s)
+    (:objects block1 - block bowl1 - container robot1 - robot )
+    (:init (on-table block1) (clear block1))
+    (:goal (and (holding robot1 block1)))
+)
