@@ -1,6 +1,5 @@
 {
   "episode_id": "TRI+938130c4+2023-08-09-16h-16m-50s",
-  "instruction": "Put the green cylinder inside the white bowl.",
   "video_path": "correct_new_scripts/raw_videos/TRI+938130c4+2023-08-09-16h-16m-50s/recordings/MP4/23404442.mp4",
   "analysis": {
     "initial_state": {
@@ -11,7 +10,12 @@
           "color": "green"
         },
         {
-          "name": "blue_cup",
+          "name": "white_box",
+          "location": "on table",
+          "color": "white"
+        },
+        {
+          "name": "blue_cylinder",
           "location": "on table",
           "color": "blue"
         },
@@ -19,30 +23,49 @@
           "name": "yellow_cylinder",
           "location": "on table",
           "color": "yellow"
+        },
+        {
+          "name": "brown_box",
+          "location": "on table",
+          "color": "brown"
         }
       ],
       "robot_holding": null
     },
     "sequence_of_actions": [
       "pick up green_cylinder",
-      "place green_cylinder in blue_cup"
+      "place green_cylinder in white_box",
+      "pick up blue_cylinder",
+      "stack blue_cylinder on white_box",
+      "pick up yellow_cylinder",
+      "place yellow_cylinder on table"
     ],
     "final_state": {
       "objects": [
         {
           "name": "green_cylinder",
-          "location": "in blue_cup",
+          "location": "in white_box",
           "color": "green"
         },
         {
-          "name": "blue_cup",
-          "location": "on table",
+          "name": "blue_cylinder",
+          "location": "on white_box",
           "color": "blue"
         },
         {
           "name": "yellow_cylinder",
           "location": "on table",
           "color": "yellow"
+        },
+        {
+          "name": "white_box",
+          "location": "on table",
+          "color": "white"
+        },
+        {
+          "name": "brown_box",
+          "location": "on table",
+          "color": "brown"
         }
       ],
       "robot_holding": null

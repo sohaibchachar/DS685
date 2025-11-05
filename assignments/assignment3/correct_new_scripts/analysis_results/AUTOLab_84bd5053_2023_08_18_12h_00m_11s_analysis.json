@@ -1,9 +1,62 @@
 {
   "episode_id": "AUTOLab+84bd5053+2023-08-18-12h-00m-11s",
-  "instruction": "Put the yellow block in the cup",
   "video_path": "correct_new_scripts/raw_videos/AUTOLab+84bd5053+2023-08-18-12h-00m-11s/recordings/MP4/24400334.mp4",
   "analysis": {
-    "error": "Failed to parse JSON response",
-    "raw_response": "```json\n{{\"\n  \"initial_state\": {\n    \"objects\": [\n      {\n        \"name\": \"yellow_block\",\n        \"location\": \"on table\",\n        \"color\": \"yellow\"\n      },\n      {\n        \"name\": \"green_block\",\n        \"location\": \"on table\",\n        \"color\": \"green\"\n      },\n      {\n        \"name\": \"blue_cup\",\n        \"location\": \"on table\",\n        \"color\": \"blue\"\n      },\n      {\n        \"name\": \"red_block\",\n        \"location\": \"on table\",\n        \"color\": \"red\"\n      }\n    ],\n    \"robot_holding\": null\n  },\n  \"sequence_of_actions\": [\n    \"pick up green_block\",\n    \"place green_block in blue_cup\"\n  ],\n  \"final_state\": {\n    \"objects\": [\n      {\n        \"name\": \"yellow_block\",\n        \"location\": \"on table\",\n        \"color\": \"yellow\"\n      },\n      {\n        \"name\": \"green_block\",\n        \"location\": \"in blue_cup\",\n        \"color\": \"green\"\n      },\n      {\n        \"name\": \"blue_cup\",\n        \"location\": \"on table\",\n        \"color\": \"blue\"\n      },\n      {\n        \"name\": \"red_block\",\n        \"location\": \"on table\",\n        \"color\": \"red\"\n      }\n    ],\n    \"robot_holding\": null\n  }\n}}\n```"
+    "initial_state": {
+      "objects": [
+        {
+          "name": "yellow_block",
+          "location": "on table",
+          "color": "yellow"
+        },
+        {
+          "name": "blue_cup",
+          "location": "on table",
+          "color": "blue"
+        },
+        {
+          "name": "green_block",
+          "location": "on table",
+          "color": "green"
+        },
+        {
+          "name": "red_block",
+          "location": "on table",
+          "color": "red"
+        }
+      ],
+      "robot_holding": null
+    },
+    "sequence_of_actions": [
+      "pick up yellow_block",
+      "place yellow_block in blue_cup",
+      "pick up red_block",
+      "stack red_block on green_block"
+    ],
+    "final_state": {
+      "objects": [
+        {
+          "name": "yellow_block",
+          "location": "in blue_cup",
+          "color": "yellow"
+        },
+        {
+          "name": "blue_cup",
+          "location": "on table",
+          "color": "blue"
+        },
+        {
+          "name": "green_block",
+          "location": "under red_block",
+          "color": "green"
+        },
+        {
+          "name": "red_block",
+          "location": "on green_block",
+          "color": "red"
+        }
+      ],
+      "robot_holding": null
+    }
   }
 }

@@ -1,19 +1,13 @@
 {
   "episode_id": "TRI+52ca9b6a+2024-01-16-16h-43m-04s",
-  "instruction": "Pick up the orange rectangular block and place it horizontally on the green cylindrical block",
   "video_path": "correct_new_scripts/raw_videos/TRI+52ca9b6a+2024-01-16-16h-43m-04s/recordings/MP4/25947356.mp4",
   "analysis": {
     "initial_state": {
       "objects": [
         {
-          "name": "red_block",
+          "name": "red_cube",
           "location": "on table",
           "color": "red"
-        },
-        {
-          "name": "green_cylinder",
-          "location": "on table",
-          "color": "green"
         },
         {
           "name": "yellow_cube",
@@ -21,12 +15,27 @@
           "color": "yellow"
         },
         {
-          "name": "blue_cup",
+          "name": "green_cylinder",
+          "location": "on table",
+          "color": "green"
+        },
+        {
+          "name": "blue_bowl",
           "location": "on table",
           "color": "blue"
         },
         {
+          "name": "wooden_spoon",
+          "location": "on table",
+          "color": "brown"
+        },
+        {
           "name": "white_spoon",
+          "location": "in white_cup",
+          "color": "white"
+        },
+        {
+          "name": "white_cup",
           "location": "on table",
           "color": "white"
         }
@@ -34,35 +43,49 @@
       "robot_holding": null
     },
     "sequence_of_actions": [
-      "pick up red_block",
-      "place red_block on top of green_cylinder",
+      "pick up red_cube",
+      "place red_cube in blue_bowl",
       "pick up yellow_cube",
-      "place yellow_cube inside blue_cup"
+      "place yellow_cube on table",
+      "stack red_cube on blue_bowl",
+      "place green_cylinder in blue_bowl",
+      "pick up white_spoon",
+      "place white_spoon in white_cup"
     ],
     "final_state": {
       "objects": [
         {
-          "name": "red_block",
-          "location": "on green_cylinder",
+          "name": "red_cube",
+          "location": "in blue_bowl",
           "color": "red"
         },
         {
-          "name": "green_cylinder",
-          "location": "on table",
-          "color": "green"
-        },
-        {
           "name": "yellow_cube",
-          "location": "inside blue_cup",
+          "location": "on table",
           "color": "yellow"
         },
         {
-          "name": "blue_cup",
+          "name": "green_cylinder",
+          "location": "in blue_bowl",
+          "color": "green"
+        },
+        {
+          "name": "blue_bowl",
           "location": "on table",
           "color": "blue"
         },
         {
+          "name": "wooden_spoon",
+          "location": "on table",
+          "color": "brown"
+        },
+        {
           "name": "white_spoon",
+          "location": "in white_cup",
+          "color": "white"
+        },
+        {
+          "name": "white_cup",
           "location": "on table",
           "color": "white"
         }

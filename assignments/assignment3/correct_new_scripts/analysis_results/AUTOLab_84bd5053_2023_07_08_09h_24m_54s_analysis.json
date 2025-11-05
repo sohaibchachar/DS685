@@ -1,9 +1,74 @@
 {
   "episode_id": "AUTOLab+84bd5053+2023-07-08-09h-24m-54s",
-  "instruction": "Put the blocks in the grey measuring cup",
   "video_path": "correct_new_scripts/raw_videos/AUTOLab+84bd5053+2023-07-08-09h-24m-54s/recordings/MP4/24400334.mp4",
   "analysis": {
-    "error": "Failed to parse JSON response",
-    "raw_response": "```json\n{{\"\n  \"initial_state\": {\n    \"objects\": [\n      {\n        \"name\": \"yellow_block\",\n        \"location\": \"on table\",\n        \"color\": \"yellow\"\n      },\n      {\n        \"name\": \"green_block\",\n        \"location\": \"on table\",\n        \"color\": \"green\"\n      },\n      {\n        \"name\": \"blue_cup\",\n        \"location\": \"on table\",\n        \"color\": \"blue\"\n      },\n      {\n        \"name\": \"gray_cup\",\n        \"location\": \"on table\",\n        \"color\": \"gray\"\n      }\n    ],\n    \"robot_holding\": null\n  },\n  \"sequence_of_actions\": [\n    \"pick up yellow_block\",\n    \"place yellow_block in gray_cup\",\n    \"pick up green_block\",\n    \"place green_block in gray_cup\"\n  ],\n  \"final_state\": [\n    {\n      \"name\": \"yellow_block\",\n      \"location\": \"in gray_cup\",\n      \"color\": \"yellow\"\n    },\n    {\n      \"name\": \"green_block\",\n      \"location\": \"in gray_cup\",\n      \"color\": \"green\"\n    },\n    {\n      \"name\": \"blue_cup\",\n      \"location\": \"on table\",\n      \"color\": \"blue\"\n    },\n    {\n      \"name\": \"gray_cup\",\n      \"location\": \"on table\",\n      \"color\": \"gray\",\n      \"contains\": [\n        \"yellow_block\",\n        \"green_block\"\n      ]\n    }\n  ],\n  \"robot_holding\": null\n}\n```"
+    "initial_state": {
+      "objects": [
+        {
+          "name": "yellow_block",
+          "location": "on table",
+          "color": "yellow"
+        },
+        {
+          "name": "green_block",
+          "location": "on table",
+          "color": "green"
+        },
+        {
+          "name": "gray_cylinder",
+          "location": "on table",
+          "color": "gray"
+        },
+        {
+          "name": "orange_cylinder",
+          "location": "on table",
+          "color": "orange"
+        },
+        {
+          "name": "blue_cup",
+          "location": "on table",
+          "color": "blue"
+        }
+      ],
+      "robot_holding": null
+    },
+    "sequence_of_actions": [
+      "pick up yellow_block",
+      "place yellow_block in blue_cup",
+      "pick up green_block",
+      "place green_block in blue_cup",
+      "pick up gray_cylinder",
+      "place gray_cylinder in blue_cup",
+      "pick up orange_cylinder",
+      "place orange_cylinder in blue_cup"
+    ],
+    "final_state": [
+      {
+        "name": "yellow_block",
+        "location": "in blue_cup",
+        "color": "yellow"
+      },
+      {
+        "name": "green_block",
+        "location": "in blue_cup",
+        "color": "green"
+      },
+      {
+        "name": "gray_cylinder",
+        "location": "in blue_cup",
+        "color": "gray"
+      },
+      {
+        "name": "orange_cylinder",
+        "location": "in blue_cup",
+        "color": "orange"
+      },
+      {
+        "name": "blue_cup",
+        "location": "on table",
+        "color": "blue"
+      }
+    ],
+    "robot_holding": null
   }
 }

@@ -33,37 +33,57 @@ OUTPUT_PROBLEM_DIR = "correct_new_scripts/problems"
 OUTPUT_RAW_RESPONSES_DIR = "correct_new_scripts/raw_responses"  # Save raw VLM responses
 OUTPUT_ANALYSIS_DIR = "correct_new_scripts/analysis_results"    # Save parsed JSON analysis
 SAMPLE_SIZE = 15  # Number of videos to process
-FRAME_RATE = 4   # FPS for video analysis
+FRAME_RATE = 20   # FPS for video analysis
 
 # --- VLN Model Prompt ---
 COSMOS_SEQUENTIAL_PROMPT = """You are analyzing a robot manipulation video. Your task is to understand the complete state of objects and what changes.
 
 CRITICAL REQUIREMENTS:
-1. LIST ALL OBJECTS: You MUST include EVERY object that appears in the video, but ONLY blocks and containers (cups, bowls, etc.)
-2. IGNORE OTHER OBJECTS: Do NOT include any objects that are not blocks or containers (ignore tools, surfaces, robots, etc.)
-3. CONSISTENT NAMING: Use consistent names for the same object across initial_state and final_state
-4. COMPLETE STATES: Both initial_state and final_state MUST list ALL blocks and containers, not just the ones being manipulated
-5. COLOR INFORMATION: Always include color for every object (e.g., "green", "yellow", "blue", "black", "white")
-6. OBJECT TYPES: Only include blocks (cubes, cylinders, rectangular blocks, etc.) and containers (cups, bowls, etc.)
+1. ACCURATE COLOR IDENTIFICATION: Pay careful attention to the ACTUAL colors of objects. Look closely at the video frames to identify colors correctly (green, yellow, blue, red, orange, black, white, etc.)
+2. LIST ALL OBJECTS: You MUST include EVERY object that appears in the video, but ONLY blocks and containers (cups, bowls, etc.)
+3. IGNORE OTHER OBJECTS: Do NOT include any objects that are not blocks or containers (ignore tools, surfaces, robots, etc.)
+4. CONSISTENT NAMING: Use consistent names for the same object across initial_state and final_state
+5. COMPLETE STATES: Both initial_state and final_state MUST list ALL blocks and containers, not just the ones being manipulated
+6. COLOR INFORMATION: Always include color for every object - be PRECISE about colors (e.g., "green", "yellow", "blue", "black", "white", "red", "orange")
+7. OBJECT TYPES: Only include blocks (cubes, cylinders, rectangular blocks, etc.) and containers (cups, bowls, etc.)
 
 1. INITIAL STATE (start of video):
-   - List ALL blocks and containers present with their colors
+   - Carefully observe and list ALL blocks and containers present
+   - Pay close attention to the ACTUAL colors - look at the video frames carefully
    - Describe where each object is located using EXACT location format:
      * "on table" for objects on the table
      * "in [container_name]" for blocks inside containers (e.g., "in white_bowl")
      * "on [block_name]" for blocks stacked on other blocks
    - Include ALL blocks and containers visible, even if they won't be manipulated
    - DO NOT include any other objects (robots, tools, surfaces, etc.)
+   - Be VERY careful about color identification - rewatch if needed
 
 2. SEQUENCE OF ACTIONS (what happens in the video):
-   - Describe the sequence of actions performed (pick up, place, stack, etc.)
+   - CRITICAL: Watch the ENTIRE video from start to finish - do NOT stop analyzing after one action
+   - Report EXACTLY what you observe - list ALL actual object manipulations that occur
+   - Count ONLY actual object manipulations:
+     * "pick up [object]" - when robot grasps an object
+     * "place [object] on table" - when object is placed on table
+     * "stack [object] on [block]" - when object is stacked on another block
+     * "place [object] in [container]" - when object is placed inside a container
+     * "remove [object] from [container]" - when object is taken out of container
+   - Do NOT count robot arm movements, positioning, or retractions as separate actions - these are just movements, not object manipulations
+   - If only ONE object is manipulated (e.g., pick up green_block, place green_block in blue_cup), report ONLY those actions - do NOT invent additional actions
+   - If MULTIPLE objects are manipulated, list ALL of them in chronological order
+   - Each pick-up/place pair typically counts as 2 actions (pick up + place), but report what actually happens
+   - Example for single object: ["pick up green_block", "place green_block in blue_cup"]
+   - Example for multiple objects: ["pick up yellow_block", "place yellow_block on table", "pick up red_block", "stack red_block on yellow_block"]
    - Focus only on actions involving blocks and containers
+   - Mention the ACTUAL colors of objects being manipulated
+   - Be accurate: report what you actually see, not what you think should happen
 
 3. FINAL STATE (end of video):
-   - List where EACH block and container ends up (ALL objects from initial_state must be listed)
+   - Carefully observe and list where EACH block and container ends up
+   - Verify colors match the initial state (same objects, same colors)
    - Use EXACT location format same as initial_state
    - Include blocks and containers that didn't move
    - DO NOT include any other objects
+   - Be VERY careful about color identification - ensure colors are accurate
 
 Provide your analysis in JSON format with this exact structure:
 {{
@@ -92,11 +112,18 @@ Provide your analysis in JSON format with this exact structure:
 IMPORTANT:
 - ONLY include blocks and containers in your analysis
 - Ignore all other objects (robots, tools, surfaces, etc.)
-- Every block/container in initial_state MUST appear in final_state
+- Be EXTREMELY careful about color identification - watch the video carefully
+- Verify colors are correct before listing objects
+- Every block/container in initial_state MUST appear in final_state with the SAME color
 - Use consistent object names (same name = same object)
 - Include color for EVERY object
 - Do NOT skip objects that don't move - they still need to be in both states
 - Be precise about locations: "on table" vs "in [container]" vs "on [block]"
+- CRITICAL: Watch the COMPLETE video and report EXACTLY what you observe - include ALL actions that actually occur, whether it's 1 action or multiple
+- Only count actual object manipulations (pick up, place, stack, put in container) - do NOT count robot movements or arm positioning as separate actions
+- If only one object is manipulated, report only that one action - do NOT create fictional additional actions
+- If multiple objects are manipulated, list ALL of them in chronological order
+- Report accurately: if there's 1 action, the array should have 1-2 items (pick up + place); if there are 5 actions, the array should reflect all 5
 """
 
 # --- Model Loading ---
@@ -160,7 +187,7 @@ def load_cosmos_model():
         raise RuntimeError(f"Failed to load Cosmos-Reason1-7B: {e}")
 
 # --- Save VLM Responses ---
-def save_vlm_response(video_path: Path, instruction: str, raw_response: str, parsed_analysis: Dict):
+def save_vlm_response(video_path: Path, raw_response: str, parsed_analysis: Dict):
     """
     Saves the raw VLM response and parsed JSON analysis to files for review.
     """
@@ -178,7 +205,6 @@ def save_vlm_response(video_path: Path, instruction: str, raw_response: str, par
     raw_response_file = raw_responses_dir / f"{safe_episode_id}_raw_response.txt"
     with open(raw_response_file, 'w', encoding='utf-8') as f:
         f.write(f"Episode ID: {episode_id}\n")
-        f.write(f"Instruction: {instruction}\n")
         f.write(f"Video Path: {video_path}\n")
         f.write("=" * 80 + "\n")
         f.write("RAW VLM RESPONSE:\n")
@@ -191,7 +217,6 @@ def save_vlm_response(video_path: Path, instruction: str, raw_response: str, par
     with open(analysis_file, 'w', encoding='utf-8') as f:
         json.dump({
             "episode_id": episode_id,
-            "instruction": instruction,
             "video_path": str(video_path),
             "analysis": parsed_analysis
         }, f, indent=2, ensure_ascii=False)
@@ -201,12 +226,12 @@ def save_vlm_response(video_path: Path, instruction: str, raw_response: str, par
 
 # --- Video Analysis ---
 def analyze_sequential_video(
-    processor, model, device, video_path: Path, instruction: str = ""
+    processor, model, device, video_path: Path
 ) -> Dict[str, any]:
     """
     Analyzes sequential video using Cosmos-Reason1-7B and transformers.
     Returns structured JSON data.
-    Note: instruction parameter is kept for logging/saving purposes but not used in the prompt.
+    No instruction used - analyzes purely from video content.
     """
     if not video_path.exists():
         return {"error": f"Video file not found: {video_path}"}
@@ -250,7 +275,7 @@ def analyze_sequential_video(
         with torch.no_grad():
             generated_ids = model.generate(
                 **inputs,
-                max_new_tokens=4096,
+                max_new_tokens=8192,  # Increased for comprehensive multi-action analysis
                 do_sample=True,
                 temperature=0.6,
                 top_p=0.95,
@@ -284,26 +309,26 @@ def analyze_sequential_video(
                 print("   ✅ Successfully parsed JSON analysis")
                 
                 # Save raw response and parsed JSON for analysis
-                save_vlm_response(video_path, instruction, response, analysis)
+                save_vlm_response(video_path, response, analysis)
                 
                 return analysis
             except json.JSONDecodeError as e:
                 print(f"   ⚠️  JSON parsing failed: {e}")
                 error_result = {"error": "Failed to parse JSON response", "raw_response": response}
-                save_vlm_response(video_path, instruction, response, error_result)
+                save_vlm_response(video_path, response, error_result)
                 return error_result
         error_result = {"error": "No JSON found in response", "raw_response": response}
-        save_vlm_response(video_path, instruction, response, error_result)
+        save_vlm_response(video_path, response, error_result)
         return error_result
         
     except Exception as e:
         print(f"   ⚠️  Analysis failed: {e}")
         import traceback
         traceback.print_exc()
-        error_result = {"error": str(e), "instruction": instruction}
+        error_result = {"error": str(e)}
         # Save error response even if analysis failed
         try:
-            save_vlm_response(video_path, instruction, f"Error: {str(e)}", error_result)
+            save_vlm_response(video_path, f"Error: {str(e)}", error_result)
         except:
             pass  # Don't fail if saving fails
         return error_result
@@ -465,31 +490,42 @@ def _parse_state_from_json(objects_data: List[Dict]) -> Tuple[Dict[str, str], Li
             predicates.append(f"(clear {clean_name})")
             
         elif "in " in location_lower:
-            # Location is "in [container_name]"
+            # Location is "in [container_name]" or potentially "in [block_name]" (stacking mistake)
             container_name_raw = location_lower.split("in ")[-1].strip()
-            # Find the normalized name for this container
+            # Find the normalized name - check for container first
             target_container_name = None
+            target_block_name = None
+            
             for data in objects_data:
                 if isinstance(data, dict):
                     target_name, target_type = _normalize_object_name(
                         data.get("name", ""), 
                         data.get("color", "")
                     )
-                    # Check if this is the container we're looking for
-                    if target_name and target_type == "container":
-                        # Try matching by name or normalized name
-                        data_name = data.get("name", "").lower()
-                        if (container_name_raw in data_name or 
-                            data_name in container_name_raw or
-                            target_name == container_name_raw):
-                            if target_name in objects_map:
+                    if not target_name:
+                        continue
+                    
+                    # Try matching by name or normalized name
+                    data_name = data.get("name", "").lower()
+                    if (container_name_raw in data_name or 
+                        data_name in container_name_raw or
+                        target_name == container_name_raw):
+                        if target_name in objects_map:
+                            if target_type == "container":
                                 target_container_name = target_name
-                                break
+                            elif target_type == "block":
+                                target_block_name = target_name
+                            break
             
             if target_container_name:
+                # It's actually in a container
                 predicates.append(f"(in {clean_name} {target_container_name})")
+            elif target_block_name:
+                # VLM said "in [block]" but it should be stacking (on)
+                print(f"   ℹ️  Treating 'in {container_name_raw}' as stacking (on) for '{clean_name}'")
+                predicates.append(f"(on {clean_name} {target_block_name})")
             else:
-                print(f"   ⚠️  Could not find matching container '{container_name_raw}' for '{clean_name}'")
+                print(f"   ⚠️  Could not find matching container or block '{container_name_raw}' for '{clean_name}'")
         elif "on " in location_lower:
             # Location is "on [block_name]" or "on top of [block_name]" or "on top [block_name]"
             # Handle various formats: "on green_block", "on top of green_block", "on top green_block"
@@ -564,12 +600,24 @@ def generate_problem_pddl(video_id: str, analysis: Dict, output_dir: Path):
     output_dir.mkdir(parents=True, exist_ok=True)
     problem_file = output_dir / f"problem_{video_id.replace('+', '_').replace('-', '_')}.pddl"
     
-    # Parse initial state
-    initial_state_data = analysis.get("initial_state", {}).get("objects", [])
+    # Parse initial state - handle both dict and direct list formats
+    initial_state = analysis.get("initial_state", {})
+    if isinstance(initial_state, dict):
+        initial_state_data = initial_state.get("objects", [])
+    elif isinstance(initial_state, list):
+        initial_state_data = initial_state
+    else:
+        initial_state_data = []
     init_objects, init_preds = _parse_state_from_json(initial_state_data)
     
-    # Parse final state (goal)
-    final_state_data = analysis.get("final_state", {}).get("objects", [])
+    # Parse final state (goal) - handle both dict and direct list formats
+    final_state = analysis.get("final_state", {})
+    if isinstance(final_state, dict):
+        final_state_data = final_state.get("objects", [])
+    elif isinstance(final_state, list):
+        final_state_data = final_state
+    else:
+        final_state_data = []
     goal_objects, goal_preds = _parse_state_from_json(final_state_data)
     
     # Combine all objects from both states
@@ -684,13 +732,6 @@ def main():
         print(f"❌ Failed to load model: {e}")
         return
         
-    # Load annotations
-    print("\n📖 Loading annotations...")
-    annotations = load_annotations()
-    if not annotations:
-        print("   No annotations found. Exiting.")
-        return
-        
     # Find videos
     video_dir = Path(VIDEO_DIR)
     if not video_dir.exists():
@@ -722,16 +763,9 @@ def main():
         if not video_path:
             print(f"   ⚠️  No video file found in {episode_dir}")
             continue
-            
-        # Get instruction for logging only (not used in prompt)
-        instruction_raw = annotations.get(episode_id, "")
-        if isinstance(instruction_raw, dict):
-            instruction = instruction_raw.get('language_instruction1') or ""
-        else:
-            instruction = instruction_raw if instruction_raw else ""
         
-        # Analyze video (no instruction passed to prompt - focuses only on blocks/containers)
-        analysis = analyze_sequential_video(processor, model, device, video_path, instruction)
+        # Analyze video (no annotations or instructions used - purely video-based analysis)
+        analysis = analyze_sequential_video(processor, model, device, video_path)
         
         # Generate problem file
         if "error" in analysis:

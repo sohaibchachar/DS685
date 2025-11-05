@@ -1,6 +1,5 @@
 {
   "episode_id": "RAIL+d027f2ae+2023-06-05-16h-33m-01s",
-  "instruction": "Put the orange block on the green block",
   "video_path": "correct_new_scripts/raw_videos/RAIL+d027f2ae+2023-06-05-16h-33m-01s/recordings/MP4/24259877.mp4",
   "analysis": {
     "initial_state": {
@@ -30,29 +29,33 @@
     },
     "sequence_of_actions": [
       "pick up orange_block",
-      "place orange_block on top of green_block"
+      "place orange_block on green_block",
+      "pick up blue_block",
+      "place blue_block next to green_block",
+      "pick up yellow_block",
+      "place yellow_block on blue_block"
     ],
     "final_state": {
       "objects": [
         {
-          "name": "orange_block",
-          "location": "on green_block",
-          "color": "orange"
-        },
-        {
           "name": "green_block",
-          "location": "on table",
+          "location": "under orange_block",
           "color": "green"
         },
         {
+          "name": "blue_block",
+          "location": "next to green_block",
+          "color": "blue"
+        },
+        {
           "name": "yellow_block",
-          "location": "on table",
+          "location": "on top of blue_block",
           "color": "yellow"
         },
         {
-          "name": "blue_block",
-          "location": "on table",
-          "color": "blue"
+          "name": "orange_block",
+          "location": "on top of green_block",
+          "color": "orange"
         }
       ],
       "robot_holding": null

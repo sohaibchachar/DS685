@@ -1,0 +1,57 @@
+Episode ID: AUTOLab+84bd5053+2023-08-18-12h-00m-11s
+Video Path: correct_new_scripts/raw_videos/AUTOLab+84bd5053+2023-08-18-12h-00m-11s/recordings/MP4/24400334.mp4
+================================================================================
+VIDEO DESCRIPTION:
+================================================================================
+```json
+{
+  "initial_state": [
+    {
+      "object": "yellow_block",
+      "location": "on table",
+      "color": "yellow"
+    },
+    {
+      "object": "blue_cup",
+      "location": "on table",
+      "color": "blue"
+    },
+    {
+      "object": "green_block",
+      "location": "on table",
+      "color": "green"
+    },
+    {
+      "object": "red_triangle",
+      "location": "on table",
+      "color": "red"
+    }
+  ],
+  "actions": [
+    "robot picked up yellow_block from table",
+    "robot placed yellow_block in blue_cup"
+  ],
+  "final_state": [
+    {
+      "object": "yellow_block",
+      "location": "in blue_cup",
+      "color": "yellow"
+    },
+    {
+      "object": "blue_cup",
+      "location": "on table",
+      "color": "blue"
+    },
+    {
+      "object": "green_block",
+      "location": "on table",
+      "color": "green"
+    },
+    {
+      "object": "red_triangle",
+      "location": "on table",
+      "color": "red"
+    }
+  ]
+}
+```

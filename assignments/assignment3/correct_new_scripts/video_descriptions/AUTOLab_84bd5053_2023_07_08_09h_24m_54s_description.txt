@@ -1,0 +1,124 @@
+Episode ID: AUTOLab+84bd5053+2023-07-08-09h-24m-54s
+Video Path: correct_new_scripts/raw_videos/AUTOLab+84bd5053+2023-07-08-09h-24m-54s/recordings/MP4/24400334.mp4
+================================================================================
+VIDEO DESCRIPTION:
+================================================================================
+```json
+{
+  "initial_state": [
+    {
+      "object": "robot",
+      "location": "above the table",
+      "description": "The robotic arm is positioned above a wooden table, with its grippers open and ready to interact with objects on the table."
+    },
+    {
+      "object": "yellow_block",
+      "location": "on the table",
+      "color": "yellow",
+      "description": "A small, rectangular yellow block is located on the table near the center."
+    },
+    {
+      "object": "orange_block",
+      "location": "on the table",
+      "color": "orange",
+      "description": "A small, rectangular orange block is located on the table near the center."
+    },
+    {
+      "object": "green_block",
+      "location": "on the table",
+      "color": "green",
+      "description": "A small, rectangular green block is located on the table near the center."
+    },
+    {
+      "object": "cylindrical_object",
+      "location": "on the table",
+      "description": "A gray cylindrical object is positioned upright on the table."
+    },
+    {
+      "object": "white_block",
+      "location": "on the table",
+      "color": "white",
+      "description": "A small, rectangular white block is located on the table near the center."
+    }
+  ],
+  "actions": [
+    {
+      "robot_action": "picks up the yellow_block",
+      "object": "yellow_block",
+      "description": "The robotic arm's grippers close around the yellow block, lifting it off the table."
+    },
+    {
+      "robot_action": "places the yellow_block into the cylindrical_object",
+      "object": "yellow_block",
+      "description": "The yellow block is carefully inserted into the top opening of the gray cylinder."
+    },
+    {
+      "robot_action": "retracts its arm after placing the block",
+      "object": "robotic arm",
+      "description": "The arm moves upward, retracting away from the cylinder."
+    },
+    {
+      "robot_action": "moves towards the orange_block",
+      "object": "robotic arm",
+      "description": "The arm extends horizontally across the table, approaching the orange block."
+    },
+    {
+      "robot_action": "picks up the orange_block",
+      "object": "orange_block",
+      "description": "The grippers close around the orange block, lifting it off the table."
+    },
+    {
+      "robot_action": "places the orange_block into the cylindrical_object",
+      "object": "orange_block",
+      "description": "The orange block is inserted into the cylinder, next to the yellow block."
+    },
+    {
+      "robot_action": "retracts its arm after placing the block",
+      "object": "robotic arm",
+      "description": "The arm moves upward, retracting away from the cylinder."
+    },
+    {
+      "robot_action": "moves towards the green_block",
+      "object": "robotic arm",
+      "description": "The arm extends horizontally across the table, approaching the green block."
+    },
+    {
+      "robot_action": "picks up the green_block",
+      "object": "green_block",
+      "description": "The grippers close around the green block, lifting it off the table."
+    },
+    {
+      "robot_action": "places the green_block into the cylindrical_object",
+      "object": "green_block",
+      "description": "The green block is inserted into the cylinder, next to the other blocks."
+    },
+    {
+      "robot_action": "retracts its arm after placing the block",
+      "object": "robotic arm",
+      "description": "The arm moves upward, retracting away from the cylinder."
+    }
+  ],
+  "final_state": [
+    {
+      "object": "yellow_block",
+      "location": "inside the cylindrical_object",
+      "description": "The yellow block is securely placed inside the gray cylinder."
+    },
+    {
+      "object": "orange_block",
+      "location": "inside the cylindrical_object",
+      "description": "The orange block is securely placed inside the gray cylinder, next to the yellow block."
+    },
+    {
+      "object": "green_block",
+      "location": "inside the cylindrical_object",
+      "description": "The green block is securely placed inside the gray cylinder, next to the other blocks."
+    },
+    {
+      "object": "cylindrical_object",
+      "location": "on the table",
+      "description": "The gray cylinder remains stationary on the table, now containing the three blocks."
+    }
+  ]
+}
+```

@@ -1,9 +1,50 @@
 {
   "episode_id": "AUTOLab+0d4edc83+2023-10-27-20h-25m-34s",
-  "instruction": "Put the green block into the black bowl.",
   "video_path": "correct_new_scripts/raw_videos/AUTOLab+0d4edc83+2023-10-27-20h-25m-34s/recordings/MP4/22008760.mp4",
   "analysis": {
-    "error": "Failed to parse JSON response",
-    "raw_response": "```json\n{{\"\n  \"initial_state\": {\n    \"objects\": [\n      {\n        \"name\": \"green_block\",\n        \"location\": \"on table\",\n        \"color\": \"green\"\n      },\n      {\n        \"name\": \"blue_cup\",\n        \"location\": \"on table\",\n        \"color\": \"blue\"\n      },\n      {\n        \"name\": \"yellow_block\",\n        \"location\": \"on table\",\n        \"color\": \"yellow\"\n      }\n    ],\n    \"robot_holding\": null\n  },\n  \"sequence_of_actions\": [\n    \"pick up green_block\",\n    \"place green_block in blue_cup\"\n  ],\n  \"final_state\": {\n    \"objects\": [\n      {\n        \"name\": \"green_block\",\n        \"location\": \"in blue_cup\",\n        \"color\": \"green\"\n      },\n      {\n        \"name\": \"blue_cup\",\n        \"location\": \"on table\",\n        \"color\": \"blue\"\n      },\n      {\n        \"name\": \"yellow_block\",\n        \"location\": \"on table\",\n        \"color\": \"yellow\"\n      }\n    ],\n    \"robot_holding\": null\n  }\n}}\n```"
+    "initial_state": {
+      "objects": [
+        {
+          "name": "green_block",
+          "location": "on table",
+          "color": "green"
+        },
+        {
+          "name": "blue_cup",
+          "location": "on table",
+          "color": "blue"
+        },
+        {
+          "name": "yellow_block",
+          "location": "on table",
+          "color": "yellow"
+        }
+      ],
+      "robot_holding": null
+    },
+    "sequence_of_actions": [
+      "pick up green_block",
+      "place green_block in blue_cup"
+    ],
+    "final_state": {
+      "objects": [
+        {
+          "name": "green_block",
+          "location": "in blue_cup",
+          "color": "green"
+        },
+        {
+          "name": "blue_cup",
+          "location": "on table",
+          "color": "blue"
+        },
+        {
+          "name": "yellow_block",
+          "location": "on table",
+          "color": "yellow"
+        }
+      ],
+      "robot_holding": null
+    }
   }
 }

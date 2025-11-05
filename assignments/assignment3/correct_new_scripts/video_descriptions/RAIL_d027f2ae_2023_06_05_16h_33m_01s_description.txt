@@ -1,0 +1,71 @@
+Episode ID: RAIL+d027f2ae+2023-06-05-16h-33m-01s
+Video Path: correct_new_scripts/raw_videos/RAIL+d027f2ae+2023-06-05-16h-33m-01s/recordings/MP4/24259877.mp4
+================================================================================
+VIDEO DESCRIPTION:
+================================================================================
+```json
+{
+  "initial_state": [
+    {
+      "object": "orange_block",
+      "location": "on table",
+      "color": "orange"
+    },
+    "object": "green_block",
+    "location": "on table",
+      "color": "green",
+    "object": "blue_block",
+    "location": "on table",
+      "color": "blue",
+    "object": "yellow_block",
+    "location": "on table",
+      "color": "yellow",
+    "object": "cardboard_box",
+    "location": "on table",
+      "color": "brown",
+    "object": "stacked_blocks",
+    "location": "on table",
+      "color": "green/yellow/blue",
+    "object": "white_robot_arm",
+    "location": "above table",
+      "color": "white"
+    },
+  "actions": [
+    "robot arm picked up orange_block from table",
+    "robot arm placed orange_block on green_block",
+    "robot arm moved away from stacked_blocks",
+  ],
+  "final_state": [
+    {
+      "object": "orange_block",
+      "location": "on green_block",
+      "color": "orange"
+    },
+    {
+      "object": "green_block",
+      "location": "on table",
+      "color": "green",
+    },
+    {
+      "object": "blue_block",
+      "location": "on table",
+      "color": "blue",
+    },
+    {
+      "object": "yellow_block",
+      "location": "on table",
+      "color": "yellow",
+    },
+    {
+      "object": "cardboard_box",
+      "location": "on table",
+      "color": "brown",
+    },
+    {
+      "object": "stacked_blocks",
+      "location": "on table",
+      "color": "green/yellow/blue",
+    }
+  ]
+}
+```
