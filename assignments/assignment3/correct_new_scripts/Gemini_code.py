@@ -16,6 +16,7 @@ import json
 import os
 import re
 import subprocess
+import gc
 from pathlib import Path
 from typing import Dict, List, Set, Optional, Tuple
 import torch
@@ -33,7 +34,7 @@ OUTPUT_PROBLEM_DIR = "correct_new_scripts/problems"
 OUTPUT_RAW_RESPONSES_DIR = "correct_new_scripts/raw_responses"  # Save raw VLM responses
 OUTPUT_ANALYSIS_DIR = "correct_new_scripts/analysis_results"    # Save parsed JSON analysis
 SAMPLE_SIZE = 15  # Number of videos to process
-FRAME_RATE = 20   # FPS for video analysis
+FRAME_RATE = 4  # FPS for video analysis
 
 # --- VLN Model Prompt ---
 COSMOS_SEQUENTIAL_PROMPT = """You are analyzing a robot manipulation video. Your task is to understand the complete state of objects and what changes.
@@ -185,6 +186,37 @@ def load_cosmos_model():
         import traceback
         traceback.print_exc()
         raise RuntimeError(f"Failed to load Cosmos-Reason1-7B: {e}")
+
+
+def clear_model_cache(model, device):
+    """Clears GPU cache and resets model state to prevent cross-contamination."""
+    if device == "cuda":
+        # Clear CUDA cache
+        torch.cuda.empty_cache()
+        # Synchronize to ensure all operations complete
+        torch.cuda.synchronize()
+    
+    # Reset model to eval mode (in case it was changed)
+    model.eval()
+    
+    # Clear any generation cache if the model has one
+    if hasattr(model, 'reset_cache'):
+        model.reset_cache()
+    
+    # Clear any attention cache
+    if hasattr(model, 'clear_cache'):
+        model.clear_cache()
+
+
+def unload_model(model, processor):
+    """Unloads model from GPU memory."""
+    del model
+    del processor
+    if torch.cuda.is_available():
+        torch.cuda.empty_cache()
+        torch.cuda.synchronize()
+    gc.collect()
+
 
 # --- Save VLM Responses ---
 def save_vlm_response(video_path: Path, raw_response: str, parsed_analysis: Dict):
@@ -767,12 +799,22 @@ def main():
         # Analyze video (no annotations or instructions used - purely video-based analysis)
         analysis = analyze_sequential_video(processor, model, device, video_path)
         
+        # Clear cache after each video to prevent cross-contamination
+        clear_model_cache(model, device)
+        
         # Generate problem file
         if "error" in analysis:
             print(f"   ⚠️  Skipping PDDL generation for {episode_id}: {analysis['error']}")
         else:
             generate_problem_pddl(episode_id, analysis, Path(OUTPUT_PROBLEM_DIR))
             all_analyses.append(analysis)
+        
+        # Reload model after analyzing each video (to prevent cross-contamination)
+        # Skip reload after the last video since we're done with analysis
+        if i < min(len(video_episodes), SAMPLE_SIZE):
+            print("   🔄 Reloading model to clear context...")
+            unload_model(model, processor)
+            processor, model, device = load_cosmos_model()
     
     print("\n" + "=" * 70)
     print("✅ PDDL GENERATION COMPLETE!")

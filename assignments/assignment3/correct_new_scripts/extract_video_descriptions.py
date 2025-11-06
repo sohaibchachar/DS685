@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """
 Stage 1: Extract text descriptions from all videos using Cosmos-Reason1-7B.
-This script analyzes videos and saves natural language descriptions of what happens.
+This script analyzes individual videos and saves natural language descriptions.
 """
 
 # Set multiprocessing start method BEFORE any imports that use CUDA
@@ -25,51 +25,64 @@ from qwen_vl_utils import process_vision_info
 COSMOS_MODEL_ID = "nvidia/Cosmos-Reason1-7B"
 VIDEO_DIR = "correct_new_scripts/raw_videos"
 OUTPUT_DESCRIPTIONS_DIR = "correct_new_scripts/video_descriptions"
-FRAME_RATE = 16  # FPS for video analysis
+FRAME_RATE = 8  # FPS for video analysis
 RELOAD_MODEL_EVERY_N_VIDEOS = 1  # Reload model every N videos (1 = reload after each video)
 
-# --- Simplified Prompt for Text Description ---
-COSMOS_DESCRIPTION_PROMPT = """Analyze this robot manipulation video and report EXACTLY what you observe.
+# --- Prompt for Video Description ---
+COSMOS_DESCRIPTION_PROMPT = """Analyze the robot manipulation video. Your response must be 100% accurate to what is visually shown.
 
-CRITICAL: Report ONLY what you actually see - do NOT invent or assume actions that don't occur.
+CRITICAL RULES:
+1.  **NO HALLUCINATIONS:** Report **ONLY** what you actually see. Do NOT invent or assume any actions, objects, or locations that are not in the video. If the robot moves one block, report one action.
+2.  **OBJECT NAMING:**
+    * **Blocks:** ALL objects being manipulated (cubes, spheres, triangles, cylinder, etc.) MUST be called a "block." Use the format `color_block` (e.g., `yellow_block`, `blue_block`).
+    * **Containers:** Any object used to hold blocks (like a bowl, cup, or tray) MUST be called a "container." Use the format `color_container` (e.g., `red_bowl`).
+3.  **ACTION FOCUS:**
+    * Report **ONLY** the actual manipulation of objects by robot in video (picking and placing).
+    * Pay close attention to stacking. If a block is placed *on top of* another block, report it as `"on [block_name]"`.
+    * If a block is placed *inside* a container, report it as `"in [container_name]"`.
 
-1. INITIAL STATE - List all objects present at the start:
-   - Format: "color_block" or "color_container" (e.g., "yellow_block", "blue_cup")
-   - Location: "on table", "in [container_name]", "on [block_name]"
-   - Example: "yellow_block on table", "blue_cup on table"
+4. **If there are multiple blocks with multiple shapes dont call them by their shape just call them by their color only e.g red_block, blue_block etc.
+5. **IMPORTANT:** Must provide color for each block or container mentioned.
+REQUIRED OUTPUT FORMAT:
+Provide your analysis in this exact JSON format.
 
-2. ACTIONS - List ONLY actual object manipulations you observe:
-   - Watch the ENTIRE video from start to finish
-   - Count ONLY when robot actually picks up, places, or moves objects
-   - Format: "robot picked up [object] from [location]" then "robot placed [object] in/on [location]"
-   - Be concise: one line per action
-   - If multiple objects are manipulated, list ALL of them in order
-   - If only one object is manipulated, report ONLY that one - do NOT create fictional additional actions
-
-3. FINAL STATE - Where each object ends up:
-   - List final location of each object that was present initially
-
-Provide your response in this exact JSON format:
 {
   "initial_state": [
-    {"object": "yellow_block", "location": "on table", "color": "yellow"},
-    {"object": "blue_cup", "location": "on table", "color": "blue"}
+    {"object": "object_name", "location": "location_description"},
+    {"object": "object_name", "location": "location_description"}
   ],
   "actions": [
-    "robot picked up yellow_block from table",
-    "robot placed yellow_block in blue_cup"
+    "Robot picked up [object_name] from [starting_location]",
+    "Robot placed [object_name] in/on [final_location]",
+    "Robot picked up [object_name] from [starting_location]",
+    "Robot placed [object_name] in/on [final_location]"
   ],
   "final_state": [
-    {"object": "yellow_block", "location": "in blue_cup", "color": "yellow"},
-    {"object": "blue_cup", "location": "on table", "color": "blue"}
+    {"object": "object_name", "location": "location_description"},
+    {"object": "object_name", "location": "location_description"}
   ]
 }
 
-IMPORTANT:
-- Report EXACTLY what you see - if there's 1 action, report 1; if there are 5, report all 5
-- Do NOT count robot movements without object manipulation as actions
-- Do NOT invent actions that don't occur
-- Be accurate and precise"""
+Example:
+{
+  "initial_state": [
+    {"object": "red_block", "location": "on table"},
+    {"object": "blue_block", "location": "on table"},
+    {"object": "green_bowl", "location": "on table"}
+  ],
+  "actions": [
+    "Robot picked up red_block from table",
+    "Robot placed red_block in green_bowl",
+    "Robot picked up blue_block from table",
+    "Robot placed blue_block on red_block"
+  ],
+  "final_state": [
+    {"object": "red_block", "location": "in green_bowl"},
+    {"object": "blue_block", "location": "on red_block"},
+    {"object": "green_bowl", "location": "on table"}
+  ]
+}
+"""
 # --- Model Loading ---
 def load_cosmos_model():
     """Loads Cosmos-Reason1-7B model using transformers."""
@@ -152,10 +165,37 @@ def unload_model(model, processor):
         torch.cuda.synchronize()
     gc.collect()
 
+# --- Helper Functions ---
+def is_stereo_video(video_path: Path) -> bool:
+    """Check if a video is a stereo video (should be skipped)."""
+    video_name_lower = video_path.name.lower()
+    # Check for common stereo video patterns
+    stereo_keywords = ["stereo", "left", "right", "_l.", "_r.", "_left", "_right"]
+    return any(keyword in video_name_lower for keyword in stereo_keywords)
+
+def group_videos_by_episode(video_dir: Path) -> Dict[str, List[Path]]:
+    """Groups video files by episode ID, excluding stereo videos."""
+    episodes = {}
+    for episode_dir in video_dir.iterdir():
+        if episode_dir.is_dir():
+            episode_id = episode_dir.name
+            mp4_dir = episode_dir / "recordings" / "MP4"
+            if mp4_dir.exists():
+                video_files = []
+                for video_file in mp4_dir.glob("*.mp4"):
+                    # Skip stereo videos
+                    if not is_stereo_video(video_file):
+                        video_files.append(video_file)
+                    else:
+                        print(f"   ⏭️  Skipping stereo video: {video_file.name}")
+                if video_files:
+                    episodes[episode_id] = sorted(video_files)
+    return episodes
+
 # --- Video Description Extraction ---
 def extract_video_description(processor, model, device, video_path: Path) -> str:
     """
-    Extracts a natural language description from a video using Cosmos.
+    Extracts a natural language description from a single video using Cosmos.
     Returns the text description.
     """
     if not video_path.exists():
@@ -227,19 +267,22 @@ def extract_video_description(processor, model, device, video_path: Path) -> str
         return f"ERROR: {str(e)}"
 
 # --- Main Processing ---
-def find_video_files(video_dir: Path) -> List[Path]:
-    """Finds all MP4 video files in the video directory structure."""
-    video_files = []
-    for episode_dir in video_dir.iterdir():
-        if episode_dir.is_dir():
-            mp4_dir = episode_dir / "recordings" / "MP4"
-            if mp4_dir.exists():
-                for video_file in mp4_dir.glob("*.mp4"):
-                    video_files.append(video_file)
-    return sorted(video_files)
+def parse_json_from_description(description: str) -> Dict:
+    """Attempts to parse JSON from the model's description response."""
+    # Try to find JSON in the response
+    json_match = re.search(r'\{.*\}', description, re.DOTALL)
+    if json_match:
+        try:
+            json_str = json_match.group(0)
+            return json.loads(json_str)
+        except json.JSONDecodeError:
+            pass
+    
+    # If JSON parsing fails, return the raw description
+    return {"raw_description": description}
 
 def main():
-    """Main function to extract descriptions from all videos."""
+    """Main function to extract descriptions from videos (one video per episode)."""
     print("=" * 80)
     print("STAGE 1: Extract Video Descriptions with Cosmos")
     print("=" * 80)
@@ -253,38 +296,55 @@ def main():
         print(f"❌ Video directory not found: {video_dir}")
         return
     
-    # Find all videos
-    video_files = find_video_files(video_dir)
-    if not video_files:
-        print(f"❌ No video files found in {video_dir}")
+    # Group videos by episode (excluding stereo videos)
+    print("\n📁 Grouping videos by episode (excluding stereo videos)...")
+    episodes = group_videos_by_episode(video_dir)
+    
+    if not episodes:
+        print(f"❌ No episodes with valid video files found in {video_dir}")
         return
     
-    print(f"\n📁 Found {len(video_files)} video files")
+    print(f"\n📊 Found {len(episodes)} episodes with videos:")
+    total_videos = 0
+    for episode_id, video_paths in episodes.items():
+        print(f"   - {episode_id}: {len(video_paths)} video(s) (will use first available)")
+        total_videos += len(video_paths)
+    print(f"   Total videos (excluding stereo): {total_videos}")
     
     # Load model initially
     processor, model, device = load_cosmos_model()
     
-    # Process each video
+    # Process each episode (using first available video)
     all_descriptions = {}
+    video_count = 0
     
-    for i, video_path in enumerate(video_files, 1):
-        print(f"\n[{i}/{len(video_files)}] Processing: {video_path.parent.parent.parent.name}")
+    for i, (episode_id, video_paths) in enumerate(episodes.items(), 1):
+        if not video_paths:
+            continue
+        
+        # Use the first available video
+        video_path = video_paths[0]
+        video_count += 1
+        
+        print(f"\n[{i}/{len(episodes)}] Processing episode: {episode_id}")
+        print(f"   📹 Analyzing: {video_path.name}")
         
         # Reload model if needed (to prevent cross-contamination)
-        # Reload before processing if we've processed N videos since last reload
-        if RELOAD_MODEL_EVERY_N_VIDEOS > 0 and i > 1 and (i - 1) % RELOAD_MODEL_EVERY_N_VIDEOS == 0:
+        if RELOAD_MODEL_EVERY_N_VIDEOS > 0 and video_count > 1 and (video_count - 1) % RELOAD_MODEL_EVERY_N_VIDEOS == 0:
             print("   🔄 Reloading model to clear context...")
             unload_model(model, processor)
             processor, model, device = load_cosmos_model()
         
-        # Extract description
+        # Extract description from video
         description = extract_video_description(processor, model, device, video_path)
         
         # Clear cache after each video to prevent cross-contamination
         clear_model_cache(model, device)
         
-        # Get episode ID
-        episode_id = video_path.parent.parent.parent.name
+        # Try to parse JSON from description
+        parsed_data = parse_json_from_description(description)
+        
+        # Create safe episode ID for filename
         safe_episode_id = episode_id.replace('+', '_').replace('-', '_')
         
         # Save individual description file
@@ -298,20 +358,28 @@ def main():
             f.write(description)
             f.write("\n")
         
-        # Store for combined JSON
-        all_descriptions[episode_id] = {
-            "video_path": str(video_path),
-            "description": description
+        # Save JSON file for this episode
+        json_file = output_dir / f"{safe_episode_id}_description.json"
+        episode_data = {
+            "episode_id": episode_id,
+            "video": str(video_path),
+            "description": description,
+            "parsed_data": parsed_data
         }
+        with open(json_file, 'w', encoding='utf-8') as f:
+            json.dump(episode_data, f, indent=2, ensure_ascii=False)
         
-        print(f"   💾 Saved: {desc_file.name}")
+        # Store for combined JSON
+        all_descriptions[episode_id] = episode_data
+        
+        print(f"   💾 Saved: {desc_file.name} and {json_file.name}")
     
     # Save combined descriptions JSON
     combined_file = output_dir / "all_descriptions.json"
     with open(combined_file, 'w', encoding='utf-8') as f:
         json.dump(all_descriptions, f, indent=2, ensure_ascii=False)
     
-    print(f"\n✅ Completed! Processed {len(video_files)} videos")
+    print(f"\n✅ Completed! Processed {len(episodes)} episodes ({video_count} videos)")
     print(f"📁 Individual descriptions: {output_dir}")
     print(f"📁 Combined JSON: {combined_file}")
 

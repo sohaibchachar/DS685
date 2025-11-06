@@ -1,6 +1,0 @@
-(define (problem test)
-    (:domain RAD_c6cf6b42_2023_08_31_14h_00m_49s)
-    (:objects block1 - block bowl1 - container robot1 - robot )
-    (:init (on-table block1) (clear block1))
-    (:goal (and (holding robot1 block1)))
-)

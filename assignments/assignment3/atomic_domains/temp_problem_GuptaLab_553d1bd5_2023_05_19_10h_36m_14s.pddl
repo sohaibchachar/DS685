@@ -1,6 +1,0 @@
-(define (problem test)
-    (:domain GuptaLab_553d1bd5_2023_05_19_10h_36m_14s)
-    (:objects block1 - block bowl1 - container robot1 - robot )
-    (:init (on-table block1) (clear block1))
-    (:goal (and (holding robot1 block1)))
-)

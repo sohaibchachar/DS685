@@ -18,6 +18,7 @@ import json
 import os
 import re
 import subprocess
+import gc
 from pathlib import Path
 from typing import Dict, List, Set, Optional, Tuple
 import torch
@@ -108,6 +109,36 @@ def load_cosmos_model():
         raise RuntimeError(f"Failed to load Cosmos-Reason1-7B: {e}")
 
 
+def clear_model_cache(model, device):
+    """Clears GPU cache and resets model state to prevent cross-contamination."""
+    if device == "cuda":
+        # Clear CUDA cache
+        torch.cuda.empty_cache()
+        # Synchronize to ensure all operations complete
+        torch.cuda.synchronize()
+    
+    # Reset model to eval mode (in case it was changed)
+    model.eval()
+    
+    # Clear any generation cache if the model has one
+    if hasattr(model, 'reset_cache'):
+        model.reset_cache()
+    
+    # Clear any attention cache
+    if hasattr(model, 'clear_cache'):
+        model.clear_cache()
+
+
+def unload_model(model, processor):
+    """Unloads model from GPU memory."""
+    del model
+    del processor
+    if torch.cuda.is_available():
+        torch.cuda.empty_cache()
+        torch.cuda.synchronize()
+    gc.collect()
+
+
 def analyze_sequential_video(
     processor, model, device, video_path: Path, instruction: str
 ) -> Dict[str, any]:
@@ -184,13 +215,21 @@ Provide your analysis in JSON format with this exact structure:
   "predicates": ["on-table", "in", "on", "clear", "holding"]
 }}
 
-IMPORTANT:
-- Every object in initial_state MUST appear in final_state (with potentially different location)
-- Use consistent object names (same name = same object)
-- Include color for EVERY object
-- Do NOT skip objects that don't move - they still need to be in both states
-- Be precise about locations: "on table" vs "in [container]" vs "on [block]"
-- Focus on physical objects (blocks, containers/cups/bowls) - DO NOT include surfaces like tables"""
+Provide a detailed sequential analysis in JSON format with:
+1. "initial_state": Objects, positions, and relationships at the start
+2. "goal_state": Desired final configuration  
+3. "sequence_of_actions": List of actions performed in order
+4. "object_types": Types of objects (e.g., block, container, robot, surface)
+5. "predicates": Relationships between objects (e.g., on, in, holding, clear)
+6. "state_transitions": How states change between key frames
+7. "key_frames": Frame indices where significant state changes occur
+
+Focus on:
+- Physical common sense reasoning
+- Spatial relationships
+- Temporal sequence of actions
+- Object manipulation states
+- Sequential reasoning about what happens step by step"""
 
     try:
         # Create messages for Qwen2.5-VL format
@@ -1294,6 +1333,16 @@ def main():
         analysis["episode_id"] = episode_id
         analysis["instruction"] = instruction
         all_analyses.append(analysis)
+        
+        # Clear cache after each video to prevent cross-contamination
+        clear_model_cache(model, device)
+        
+        # Reload model after analyzing each video (to prevent cross-contamination)
+        # Skip reload after the last video since we're done with analysis
+        if i < min(len(video_episodes), SAMPLE_SIZE):
+            print("   🔄 Reloading model to clear context...")
+            unload_model(model, processor)
+            processor, model, device = load_cosmos_model()
     
     # STEP 2: Generate domain.pddl from all analyses
     print("\n" + "=" * 70)

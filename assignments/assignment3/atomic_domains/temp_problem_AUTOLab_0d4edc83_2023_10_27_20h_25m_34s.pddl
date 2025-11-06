@@ -1,6 +1,0 @@
-(define (problem test)
-    (:domain AUTOLab_0d4edc83_2023_10_27_20h_25m_34s)
-    (:objects block1 - block bowl1 - container robot1 - robot )
-    (:init (on-table block1) (clear block1))
-    (:goal (and (holding robot1 block1)))
-)
