@@ -1,0 +1,8 @@
+{
+  "episode_id": "AUTOLab+0d4edc83+2023-10-27-20h-25m-34s",
+  "video": "raw_videos/AUTOLab+0d4edc83+2023-10-27-20h-25m-34s/recordings/MP4/24400334.mp4",
+  "description": "```json\n{\n  \"initial_state\": [\n    {\n      \"object\": \"black bowl\",\n      \"location\": \"center of the table\"\n    },\n    \"object\": \"green block\",\n    \"location\": \"near the black bowl\"\n  },\n  \"actions\": [\n    \"Robot arm picked up the green block from the table\",\n    \"Robot arm placed the green block inside the black bowl\"\n  ],\n  \"final_state\": [\n    {\n      \"object\": \"green block\",\n      \"location\": \"inside the black bowl\"\n    }\n  ]\n}\n```",
+  "parsed_data": {
+    "raw_description": "```json\n{\n  \"initial_state\": [\n    {\n      \"object\": \"black bowl\",\n      \"location\": \"center of the table\"\n    },\n    \"object\": \"green block\",\n    \"location\": \"near the black bowl\"\n  },\n  \"actions\": [\n    \"Robot arm picked up the green block from the table\",\n    \"Robot arm placed the green block inside the black bowl\"\n  ],\n  \"final_state\": [\n    {\n      \"object\": \"green block\",\n      \"location\": \"inside the black bowl\"\n    }\n  ]\n}\n```"
+  }
+}

@@ -1,0 +1,49 @@
+{
+  "episode_id": "AUTOLab+84bd5053+2023-08-18-12h-00m-11s",
+  "video": "raw_videos/AUTOLab+84bd5053+2023-08-18-12h-00m-11s/recordings/MP4/24400334.mp4",
+  "description": "```json\n{\n  \"initial_state\": [\n    {\n      \"object\": \"yellow_block\",\n      \"location\": \"on the table\"\n    },\n    {\n      \"object\": \"green_block\",\n      \"location\": \"on the table\"\n    },\n    {\n      \"object\": \"blue_cup\",\n      \"location\": \"on the table\"\n    },\n    {\n      \"object\": \"red_triangle\",\n      \"location\": \"on the table\"\n    }\n  ],\n  \"actions\": [\n    \"Robot arm picked up the yellow_block from the table\",\n    \"Robot arm moved the yellow_block towards the blue_cup\",\n    \"Robot arm placed the yellow_block inside the blue_cup\"\n  ],\n  \"final_state\": [\n    {\n      \"object\": \"yellow_block\",\n      \"location\": \"in the blue_cup\"\n    },\n    {\n      \"object\": \"green_block\",\n      \"location\": \"on the table\"\n    },\n    {\n      \"object\": \"blue_cup\",\n      \"location\": \"on the table\",\n      \"note\": \"contains the yellow_block\"\n    },\n    {\n      \"object\": \"red_triangle\",\n      \"location\": \"on the table\"\n    }\n  ]\n}\n```",
+  "parsed_data": {
+    "initial_state": [
+      {
+        "object": "yellow_block",
+        "location": "on the table"
+      },
+      {
+        "object": "green_block",
+        "location": "on the table"
+      },
+      {
+        "object": "blue_cup",
+        "location": "on the table"
+      },
+      {
+        "object": "red_triangle",
+        "location": "on the table"
+      }
+    ],
+    "actions": [
+      "Robot arm picked up the yellow_block from the table",
+      "Robot arm moved the yellow_block towards the blue_cup",
+      "Robot arm placed the yellow_block inside the blue_cup"
+    ],
+    "final_state": [
+      {
+        "object": "yellow_block",
+        "location": "in the blue_cup"
+      },
+      {
+        "object": "green_block",
+        "location": "on the table"
+      },
+      {
+        "object": "blue_cup",
+        "location": "on the table",
+        "note": "contains the yellow_block"
+      },
+      {
+        "object": "red_triangle",
+        "location": "on the table"
+      }
+    ]
+  }
+}

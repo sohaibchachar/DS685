@@ -1,0 +1,70 @@
+Episode ID: RAD+c6cf6b42+2023-08-31-14h-00m-49s
+Video Path: raw_videos/RAD+c6cf6b42+2023-08-31-14h-00m-49s/recordings/MP4/32907025.mp4
+================================================================================
+VIDEO DESCRIPTION:
+================================================================================
+```json
+{
+  "initial_state": [
+    {
+      "object": "white_bowl",
+      "location": "on the table",
+      "notes": ["Contains several green cubes and one blue cube."]
+    },
+    {
+      "object": "green_cube",
+      "location": "on the table near the white bowl",
+      "notes": ["A small, solid green cube."
+               "Initially located inside the white bowl."
+               "Picked up by the robotic arm and placed back onto the table."]
+    },
+    {
+      "object": "blue_cube",
+      "location": "inside the white bowl",
+      "notes": ["A small, solid blue cube."
+               "Initially located inside the white bowl."
+               "Remains in the bowl throughout the sequence."]
+    },
+    {
+      "object": "yellow_cube",
+      "location": "on the table near the white bowl",
+      "notes": ["A small, solid yellow cube."
+               "Located on the table outside the bowl and remains stationary."
+    }
+  ],
+  "actions": [
+    {
+      "object": "green_cube",
+      "action": "picked up from the white bowl by the robotic arm",
+      "notes": ["The robotic arm moves towards the green cube inside the white bowl."
+               "It successfully grasps the green cube using its grippers."
+               "The arm lifts the green cube out of the bowl and places it on the table."]
+    },
+    {
+      "object": "green_cube",
+      "action": "placed on the table by the robotic arm",
+      "notes": ["The robotic arm positions the green cube on the table surface, slightly away from the bowl."
+               "The cube is now stationary on the table."
+    }
+  ],
+  "final_state": [
+    {
+      "object": "white_bowl",
+      "location": "on the table",
+      "notes": ["Still contains several green cubes and one blue cube."
+               "The arrangement of objects inside has changed due to the removal of the green cube."
+    },
+    {
+      "object": "green_cube",
+      "location": "on the table",
+      "notes": ["Now resting on the table surface after being placed there by the robotic arm."
+               "Positioned near the white bowl but distinct from it."
+    },
+    {
+      "object": "blue_cube",
+      "location": "inside the white bowl",
+      "notes": ["Remains inside the bowl, undisturbed by the robotic arm's actions."
+    }
+  ]
+}
+```

@@ -1,7 +1,6 @@
 (define (domain robot-manipulation)
   (:requirements :strips :typing)
   (:types block container robot)
-  
   (:predicates
     (on ?x - block ?y - block)
     (on-table ?x - block)
@@ -10,37 +9,31 @@
     (holding ?r - robot ?x - block)
     (empty ?r - robot)
   )
-
   (:action pick-up
     :parameters (?r - robot ?x - block)
     :precondition (and (on-table ?x) (clear ?x) (empty ?r))
     :effect (and (not (on-table ?x)) (holding ?r ?x) (not (empty ?r)))
   )
-
   (:action put-down
     :parameters (?r - robot ?x - block)
     :precondition (holding ?r ?x)
-    :effect (and (not (holding ?r ?x)) (on-table ?x) (empty ?r))
+    :effect (and (on-table ?x) (not (holding ?r ?x)) (empty ?r))
   )
-
   (:action stack
     :parameters (?r - robot ?x - block ?y - block)
     :precondition (and (holding ?r ?x) (clear ?y))
-    :effect (and (not (holding ?r ?x)) (on ?x ?y) (clear ?x) (empty ?r) (not (clear ?y)))
+    :effect (and (on ?x ?y) (not (holding ?r ?x)) (empty ?r) (not (clear ?y)))
   )
-
   (:action unstack
     :parameters (?r - robot ?x - block ?y - block)
     :precondition (and (on ?x ?y) (clear ?x) (empty ?r))
-    :effect (and (holding ?r ?x) (not (on ?x ?y)) (clear ?y) (not (clear ?x)) (not (empty ?r)))
+    :effect (and (holding ?r ?x) (not (on ?x ?y)) (clear ?y) (not (empty ?r)))
   )
-
   (:action put-in
     :parameters (?r - robot ?x - block ?c - container)
     :precondition (and (holding ?r ?x) (clear ?c))
-    :effect (and (not (holding ?r ?x)) (in ?x ?c) (empty ?r))
+    :effect (and (in ?x ?c) (not (holding ?r ?x)) (empty ?r))
   )
-
   (:action take-out
     :parameters (?r - robot ?x - block ?c - container)
     :precondition (and (in ?x ?c) (empty ?r))

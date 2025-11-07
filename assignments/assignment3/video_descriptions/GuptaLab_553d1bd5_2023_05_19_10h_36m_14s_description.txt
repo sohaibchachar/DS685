@@ -1,0 +1,46 @@
+Episode ID: GuptaLab+553d1bd5+2023-05-19-10h-36m-14s
+Video Path: raw_videos/GuptaLab+553d1bd5+2023-05-19-10h-36m-14s/recordings/MP4/26638268.mp4
+================================================================================
+VIDEO DESCRIPTION:
+================================================================================
+```json
+{
+  "initial_state": [
+    {
+      "object": "red_block",
+      "location": "on the table"
+    },
+    {
+      "object": "green_block",
+      "location": "on the table"
+    },
+    {
+      "object": "white_cabinet",
+      "location": "above the table"
+    },
+    {
+      "object": "robot_arm",
+      "location": "above the table"
+    }
+  ],
+  "actions": [
+    "Robot arm picks up the red block from the table.",
+    "Robot arm moves the red block towards the green block.",
+    "Robot arm places the red block on top of the green block."
+  ],
+  "final_state": [
+    {
+      "object": "stacked_blocks",
+      "location": "on the table"
+    },
+    {
+      "object": "white_cabinet",
+      "location": "above the table"
+    },
+    {
+      "object": "robot_arm",
+      "location": "above the table"
+    }
+  ]
+}
+```

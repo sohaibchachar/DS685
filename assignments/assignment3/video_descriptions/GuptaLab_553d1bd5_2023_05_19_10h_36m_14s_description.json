@@ -1,0 +1,44 @@
+{
+  "episode_id": "GuptaLab+553d1bd5+2023-05-19-10h-36m-14s",
+  "video": "raw_videos/GuptaLab+553d1bd5+2023-05-19-10h-36m-14s/recordings/MP4/26638268.mp4",
+  "description": "```json\n{\n  \"initial_state\": [\n    {\n      \"object\": \"red_block\",\n      \"location\": \"on the table\"\n    },\n    {\n      \"object\": \"green_block\",\n      \"location\": \"on the table\"\n    },\n    {\n      \"object\": \"white_cabinet\",\n      \"location\": \"above the table\"\n    },\n    {\n      \"object\": \"robot_arm\",\n      \"location\": \"above the table\"\n    }\n  ],\n  \"actions\": [\n    \"Robot arm picks up the red block from the table.\",\n    \"Robot arm moves the red block towards the green block.\",\n    \"Robot arm places the red block on top of the green block.\"\n  ],\n  \"final_state\": [\n    {\n      \"object\": \"stacked_blocks\",\n      \"location\": \"on the table\"\n    },\n    {\n      \"object\": \"white_cabinet\",\n      \"location\": \"above the table\"\n    },\n    {\n      \"object\": \"robot_arm\",\n      \"location\": \"above the table\"\n    }\n  ]\n}\n```",
+  "parsed_data": {
+    "initial_state": [
+      {
+        "object": "red_block",
+        "location": "on the table"
+      },
+      {
+        "object": "green_block",
+        "location": "on the table"
+      },
+      {
+        "object": "white_cabinet",
+        "location": "above the table"
+      },
+      {
+        "object": "robot_arm",
+        "location": "above the table"
+      }
+    ],
+    "actions": [
+      "Robot arm picks up the red block from the table.",
+      "Robot arm moves the red block towards the green block.",
+      "Robot arm places the red block on top of the green block."
+    ],
+    "final_state": [
+      {
+        "object": "stacked_blocks",
+        "location": "on the table"
+      },
+      {
+        "object": "white_cabinet",
+        "location": "above the table"
+      },
+      {
+        "object": "robot_arm",
+        "location": "above the table"
+      }
+    ]
+  }
+}

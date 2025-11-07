@@ -17,8 +17,7 @@ SPECIFIC_EPISODES = [
     "AUTOLab+0d4edc83+2023-10-27-20h-25m-34s",
     "GuptaLab+553d1bd5+2023-05-19-10h-36m-14s",
     "RAD+c6cf6b42+2023-08-31-14h-00m-49s",
-    "RAIL+d027f2ae+2023-06-05-16h-33m-01s",
-    "RAIL+d027f2ae+2023-06-20-15h-32m-38s"
+    "AUTOLab+0d4edc83+2023-08-18-12h-00m-11s",
 ]
 
 

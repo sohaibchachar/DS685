@@ -1,0 +1,27 @@
+Episode ID: AUTOLab+0d4edc83+2023-10-27-20h-25m-34s
+Video Path: raw_videos/AUTOLab+0d4edc83+2023-10-27-20h-25m-34s/recordings/MP4/24400334.mp4
+================================================================================
+VIDEO DESCRIPTION:
+================================================================================
+```json
+{
+  "initial_state": [
+    {
+      "object": "black bowl",
+      "location": "center of the table"
+    },
+    "object": "green block",
+    "location": "near the black bowl"
+  },
+  "actions": [
+    "Robot arm picked up the green block from the table",
+    "Robot arm placed the green block inside the black bowl"
+  ],
+  "final_state": [
+    {
+      "object": "green block",
+      "location": "inside the black bowl"
+    }
+  ]
+}
+```

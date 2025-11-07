@@ -1,0 +1,111 @@
+{
+  "RAD+c6cf6b42+2023-08-31-14h-00m-49s": {
+    "episode_id": "RAD+c6cf6b42+2023-08-31-14h-00m-49s",
+    "video": "raw_videos/RAD+c6cf6b42+2023-08-31-14h-00m-49s/recordings/MP4/32907025.mp4",
+    "description": "```json\n{\n  \"initial_state\": [\n    {\n      \"object\": \"white_bowl\",\n      \"location\": \"on the table\",\n      \"notes\": [\"Contains several green cubes and one blue cube.\"]\n    },\n    {\n      \"object\": \"green_cube\",\n      \"location\": \"on the table near the white bowl\",\n      \"notes\": [\"A small, solid green cube.\"\n               \"Initially located inside the white bowl.\"\n               \"Picked up by the robotic arm and placed back onto the table.\"]\n    },\n    {\n      \"object\": \"blue_cube\",\n      \"location\": \"inside the white bowl\",\n      \"notes\": [\"A small, solid blue cube.\"\n               \"Initially located inside the white bowl.\"\n               \"Remains in the bowl throughout the sequence.\"]\n    },\n    {\n      \"object\": \"yellow_cube\",\n      \"location\": \"on the table near the white bowl\",\n      \"notes\": [\"A small, solid yellow cube.\"\n               \"Located on the table outside the bowl and remains stationary.\"\n    }\n  ],\n  \"actions\": [\n    {\n      \"object\": \"green_cube\",\n      \"action\": \"picked up from the white bowl by the robotic arm\",\n      \"notes\": [\"The robotic arm moves towards the green cube inside the white bowl.\"\n               \"It successfully grasps the green cube using its grippers.\"\n               \"The arm lifts the green cube out of the bowl and places it on the table.\"]\n    },\n    {\n      \"object\": \"green_cube\",\n      \"action\": \"placed on the table by the robotic arm\",\n      \"notes\": [\"The robotic arm positions the green cube on the table surface, slightly away from the bowl.\"\n               \"The cube is now stationary on the table.\"\n    }\n  ],\n  \"final_state\": [\n    {\n      \"object\": \"white_bowl\",\n      \"location\": \"on the table\",\n      \"notes\": [\"Still contains several green cubes and one blue cube.\"\n               \"The arrangement of objects inside has changed due to the removal of the green cube.\"\n    },\n    {\n      \"object\": \"green_cube\",\n      \"location\": \"on the table\",\n      \"notes\": [\"Now resting on the table surface after being placed there by the robotic arm.\"\n               \"Positioned near the white bowl but distinct from it.\"\n    },\n    {\n      \"object\": \"blue_cube\",\n      \"location\": \"inside the white bowl\",\n      \"notes\": [\"Remains inside the bowl, undisturbed by the robotic arm's actions.\"\n    }\n  ]\n}\n```",
+    "parsed_data": {
+      "raw_description": "```json\n{\n  \"initial_state\": [\n    {\n      \"object\": \"white_bowl\",\n      \"location\": \"on the table\",\n      \"notes\": [\"Contains several green cubes and one blue cube.\"]\n    },\n    {\n      \"object\": \"green_cube\",\n      \"location\": \"on the table near the white bowl\",\n      \"notes\": [\"A small, solid green cube.\"\n               \"Initially located inside the white bowl.\"\n               \"Picked up by the robotic arm and placed back onto the table.\"]\n    },\n    {\n      \"object\": \"blue_cube\",\n      \"location\": \"inside the white bowl\",\n      \"notes\": [\"A small, solid blue cube.\"\n               \"Initially located inside the white bowl.\"\n               \"Remains in the bowl throughout the sequence.\"]\n    },\n    {\n      \"object\": \"yellow_cube\",\n      \"location\": \"on the table near the white bowl\",\n      \"notes\": [\"A small, solid yellow cube.\"\n               \"Located on the table outside the bowl and remains stationary.\"\n    }\n  ],\n  \"actions\": [\n    {\n      \"object\": \"green_cube\",\n      \"action\": \"picked up from the white bowl by the robotic arm\",\n      \"notes\": [\"The robotic arm moves towards the green cube inside the white bowl.\"\n               \"It successfully grasps the green cube using its grippers.\"\n               \"The arm lifts the green cube out of the bowl and places it on the table.\"]\n    },\n    {\n      \"object\": \"green_cube\",\n      \"action\": \"placed on the table by the robotic arm\",\n      \"notes\": [\"The robotic arm positions the green cube on the table surface, slightly away from the bowl.\"\n               \"The cube is now stationary on the table.\"\n    }\n  ],\n  \"final_state\": [\n    {\n      \"object\": \"white_bowl\",\n      \"location\": \"on the table\",\n      \"notes\": [\"Still contains several green cubes and one blue cube.\"\n               \"The arrangement of objects inside has changed due to the removal of the green cube.\"\n    },\n    {\n      \"object\": \"green_cube\",\n      \"location\": \"on the table\",\n      \"notes\": [\"Now resting on the table surface after being placed there by the robotic arm.\"\n               \"Positioned near the white bowl but distinct from it.\"\n    },\n    {\n      \"object\": \"blue_cube\",\n      \"location\": \"inside the white bowl\",\n      \"notes\": [\"Remains inside the bowl, undisturbed by the robotic arm's actions.\"\n    }\n  ]\n}\n```"
+    }
+  },
+  "GuptaLab+553d1bd5+2023-05-19-10h-36m-14s": {
+    "episode_id": "GuptaLab+553d1bd5+2023-05-19-10h-36m-14s",
+    "video": "raw_videos/GuptaLab+553d1bd5+2023-05-19-10h-36m-14s/recordings/MP4/26638268.mp4",
+    "description": "```json\n{\n  \"initial_state\": [\n    {\n      \"object\": \"red_block\",\n      \"location\": \"on the table\"\n    },\n    {\n      \"object\": \"green_block\",\n      \"location\": \"on the table\"\n    },\n    {\n      \"object\": \"white_cabinet\",\n      \"location\": \"above the table\"\n    },\n    {\n      \"object\": \"robot_arm\",\n      \"location\": \"above the table\"\n    }\n  ],\n  \"actions\": [\n    \"Robot arm picks up the red block from the table.\",\n    \"Robot arm moves the red block towards the green block.\",\n    \"Robot arm places the red block on top of the green block.\"\n  ],\n  \"final_state\": [\n    {\n      \"object\": \"stacked_blocks\",\n      \"location\": \"on the table\"\n    },\n    {\n      \"object\": \"white_cabinet\",\n      \"location\": \"above the table\"\n    },\n    {\n      \"object\": \"robot_arm\",\n      \"location\": \"above the table\"\n    }\n  ]\n}\n```",
+    "parsed_data": {
+      "initial_state": [
+        {
+          "object": "red_block",
+          "location": "on the table"
+        },
+        {
+          "object": "green_block",
+          "location": "on the table"
+        },
+        {
+          "object": "white_cabinet",
+          "location": "above the table"
+        },
+        {
+          "object": "robot_arm",
+          "location": "above the table"
+        }
+      ],
+      "actions": [
+        "Robot arm picks up the red block from the table.",
+        "Robot arm moves the red block towards the green block.",
+        "Robot arm places the red block on top of the green block."
+      ],
+      "final_state": [
+        {
+          "object": "stacked_blocks",
+          "location": "on the table"
+        },
+        {
+          "object": "white_cabinet",
+          "location": "above the table"
+        },
+        {
+          "object": "robot_arm",
+          "location": "above the table"
+        }
+      ]
+    }
+  },
+  "AUTOLab+0d4edc83+2023-10-27-20h-25m-34s": {
+    "episode_id": "AUTOLab+0d4edc83+2023-10-27-20h-25m-34s",
+    "video": "raw_videos/AUTOLab+0d4edc83+2023-10-27-20h-25m-34s/recordings/MP4/24400334.mp4",
+    "description": "```json\n{\n  \"initial_state\": [\n    {\n      \"object\": \"black bowl\",\n      \"location\": \"center of the table\"\n    },\n    \"object\": \"green block\",\n    \"location\": \"near the black bowl\"\n  },\n  \"actions\": [\n    \"Robot arm picked up the green block from the table\",\n    \"Robot arm placed the green block inside the black bowl\"\n  ],\n  \"final_state\": [\n    {\n      \"object\": \"green block\",\n      \"location\": \"inside the black bowl\"\n    }\n  ]\n}\n```",
+    "parsed_data": {
+      "raw_description": "```json\n{\n  \"initial_state\": [\n    {\n      \"object\": \"black bowl\",\n      \"location\": \"center of the table\"\n    },\n    \"object\": \"green block\",\n    \"location\": \"near the black bowl\"\n  },\n  \"actions\": [\n    \"Robot arm picked up the green block from the table\",\n    \"Robot arm placed the green block inside the black bowl\"\n  ],\n  \"final_state\": [\n    {\n      \"object\": \"green block\",\n      \"location\": \"inside the black bowl\"\n    }\n  ]\n}\n```"
+    }
+  },
+  "AUTOLab+84bd5053+2023-08-18-12h-00m-11s": {
+    "episode_id": "AUTOLab+84bd5053+2023-08-18-12h-00m-11s",
+    "video": "raw_videos/AUTOLab+84bd5053+2023-08-18-12h-00m-11s/recordings/MP4/24400334.mp4",
+    "description": "```json\n{\n  \"initial_state\": [\n    {\n      \"object\": \"yellow_block\",\n      \"location\": \"on the table\"\n    },\n    {\n      \"object\": \"green_block\",\n      \"location\": \"on the table\"\n    },\n    {\n      \"object\": \"blue_cup\",\n      \"location\": \"on the table\"\n    },\n    {\n      \"object\": \"red_triangle\",\n      \"location\": \"on the table\"\n    }\n  ],\n  \"actions\": [\n    \"Robot arm picked up the yellow_block from the table\",\n    \"Robot arm moved the yellow_block towards the blue_cup\",\n    \"Robot arm placed the yellow_block inside the blue_cup\"\n  ],\n  \"final_state\": [\n    {\n      \"object\": \"yellow_block\",\n      \"location\": \"in the blue_cup\"\n    },\n    {\n      \"object\": \"green_block\",\n      \"location\": \"on the table\"\n    },\n    {\n      \"object\": \"blue_cup\",\n      \"location\": \"on the table\",\n      \"note\": \"contains the yellow_block\"\n    },\n    {\n      \"object\": \"red_triangle\",\n      \"location\": \"on the table\"\n    }\n  ]\n}\n```",
+    "parsed_data": {
+      "initial_state": [
+        {
+          "object": "yellow_block",
+          "location": "on the table"
+        },
+        {
+          "object": "green_block",
+          "location": "on the table"
+        },
+        {
+          "object": "blue_cup",
+          "location": "on the table"
+        },
+        {
+          "object": "red_triangle",
+          "location": "on the table"
+        }
+      ],
+      "actions": [
+        "Robot arm picked up the yellow_block from the table",
+        "Robot arm moved the yellow_block towards the blue_cup",
+        "Robot arm placed the yellow_block inside the blue_cup"
+      ],
+      "final_state": [
+        {
+          "object": "yellow_block",
+          "location": "in the blue_cup"
+        },
+        {
+          "object": "green_block",
+          "location": "on the table"
+        },
+        {
+          "object": "blue_cup",
+          "location": "on the table",
+          "note": "contains the yellow_block"
+        },
+        {
+          "object": "red_triangle",
+          "location": "on the table"
+        }
+      ]
+    }
+  }
+}

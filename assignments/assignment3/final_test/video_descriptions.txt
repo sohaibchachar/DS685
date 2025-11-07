@@ -1,0 +1,34 @@
+================================================================================
+Episode ID: AUTOLab+0d4edc83+2023-10-27-20h-25m-34s
+Video Path: /workspaces/eng-ai-agents/assignments/assignment3/raw_videos/AUTOLab+0d4edc83+2023-10-27-20h-25m-34s/recordings/MP4/24400334.mp4
+================================================================================
+```json
+{
+  "initial_state": [
+    {
+      "object": "black bowl",
+      "location": "center of the table"
+    },
+    "object": "green cube",
+    "location": "near the black bowl"
+    "object": "robot arm",
+    "location": "above the table"
+  },
+  "actions": [
+    "Robot arm picks up the green cube from the table",
+    "Robot arm moves the green cube towards the black bowl",
+    "Robot arm places the green cube inside the black bowl"
+  ],
+  "final_state": [
+    {
+      "object": "black bowl",
+      "location": "still in the center of the table but now containing the green cube"
+    },
+    "object": "green cube",
+    "location": "inside the black bowl"
+    "object": "robot arm",
+    "location": "above the table, having moved away from the bowl after placing the cube"
+  ]
+}
+```
+
