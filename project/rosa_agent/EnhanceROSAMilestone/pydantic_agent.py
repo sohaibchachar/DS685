@@ -8,6 +8,7 @@ from pathlib import Path
 from typing import AsyncIterator, Dict, Any, Optional
 from pydantic import BaseModel, Field
 from pydantic_ai import Agent, RunContext
+from pydantic_ai.messages import ModelRequest, ModelResponse, UserPromptPart, TextPart
 from dotenv import load_dotenv
 
 from message_bus import NATSMessageBus, MessageBus
@@ -252,19 +253,34 @@ Always reason step-by-step about the maze layout and navigation path before exec
         
         # Store deps for use in run methods
         self.agent_deps = AgentDeps(ros_bridge=ros_bridge)
+        # Store conversation history
+        self.conversation_history = []
     
+    def _convert_messages(self, messages: list) -> list:
+        """Convert Streamlit message format to pydantic_ai ModelMessage format."""
+        pydantic_messages = []
+        for msg in messages:
+            if msg["role"] == "user":
+                pydantic_messages.append(ModelRequest(parts=[UserPromptPart(content=msg["content"])]))
+            elif msg["role"] == "assistant":
+                pydantic_messages.append(ModelResponse(parts=[TextPart(content=msg["content"])]))
+        return pydantic_messages
     
-    async def run_streaming(self, user_query: str) -> AsyncIterator[str]:
+    async def run_streaming(self, user_query: str, previous_messages: list | None = None) -> AsyncIterator[str]:
         """Run agent with streaming responses.
         
         Args:
             user_query: User's query/instruction
+            previous_messages: List of previous messages in format [{"role": "user/assistant", "content": "..."}]
         
         Yields:
             Streaming text chunks from the agent
         """
-        # Run agent with dependencies and stream the response character by character
-        result = await self.agent.run(user_query, deps=self.agent_deps)
+        # Convert previous messages to pydantic_ai format
+        history = self._convert_messages(previous_messages or [])
+        
+        # Run agent with dependencies and conversation history
+        result = await self.agent.run(user_query, deps=self.agent_deps, message_history=history)
         
         # Get the response text - pydantic_ai uses result.output (not result.data)
         response_text = result.output if hasattr(result, 'output') else str(result)
@@ -279,26 +295,35 @@ Always reason step-by-step about the maze layout and navigation path before exec
             yield char
             await asyncio.sleep(0.01)  # Small delay for streaming effect
     
-    async def run(self, user_query: str) -> str:
+    async def run(self, user_query: str, previous_messages: list | None = None) -> str:
         """Run agent and return complete response.
         
         Args:
             user_query: User's query/instruction
+            previous_messages: List of previous messages in format [{"role": "user/assistant", "content": "..."}]
         
         Returns:
             Complete response text
         """
-        result = await self.agent.run(user_query, deps=self.agent_deps)
-        
-        # Extract the actual text content - pydantic_ai uses result.output (not result.data)
-        response_text = result.output if hasattr(result, 'output') else str(result)
-        
-        # Ensure newlines are actual newlines (not \n strings)
-        if isinstance(response_text, str):
-            # Replace literal \n strings with actual newlines if needed
-            response_text = response_text.replace('\\n', '\n')
-        
-        return response_text
+        try:
+            # Convert previous messages to pydantic_ai format
+            history = self._convert_messages(previous_messages or [])
+            
+            # Run agent with dependencies and conversation history
+            result = await self.agent.run(user_query, deps=self.agent_deps, message_history=history)
+            
+            # Extract the actual text content - pydantic_ai uses result.output (not result.data)
+            response_text = result.output if hasattr(result, 'output') else str(result)
+            
+            # Ensure newlines are actual newlines (not \n strings)
+            if isinstance(response_text, str):
+                # Replace literal \n strings with actual newlines if needed
+                response_text = response_text.replace('\\n', '\n')
+            
+            return response_text
+        except Exception as e:
+            # Return error message instead of raising to prevent streamlit from showing error
+            return f"I encountered an error while processing your request: {str(e)}\n\nThe navigation commands may have completed successfully, but there was an issue formatting the response."
 
 
 async def create_pydantic_agent(message_bus: MessageBus) -> PydanticROSAgent:

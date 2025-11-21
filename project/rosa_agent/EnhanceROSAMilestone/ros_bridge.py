@@ -27,7 +27,7 @@ class ROSBridge:
         return await self.bus.request("ros.topic.subscribe", {"topic": topic}, timeout=5.0)
 
     async def navigate_to_pose(self, x: float, y: float, theta: float = 0.0, frame_id: str = "map") -> dict:
-        return await self.bus.request("ros.navigate_to_pose", {"x": x, "y": y, "theta": theta, "frame_id": frame_id}, timeout=75.0)
+        return await self.bus.request("ros.navigate_to_pose", {"x": x, "y": y, "theta": theta, "frame_id": frame_id}, timeout=200.0)
 
     async def get_robot_pose(self) -> dict:
         return await self.bus.request("ros.get_robot_pose", timeout=5.0)

@@ -87,15 +87,23 @@ if prompt := st.chat_input("Ask ROSA (e.g., 'Navigate to x=2.0, y=1.5' or 'List 
         with st.chat_message("assistant"):
             with st.spinner("Thinking..."):
                 try:
+                    # Get previous messages (excluding the current one we just added)
+                    previous_messages = st.session_state.messages[:-1]
+                    
                     future = asyncio.run_coroutine_threadsafe(
-                        st.session_state.agent.run(prompt),
+                        st.session_state.agent.run(prompt, previous_messages=previous_messages),
                         st.session_state.event_loop
                     )
-                    response = future.result(timeout=60)
+                    response = future.result(timeout=300)  # Increased timeout for multiple navigations
                     st.markdown(response)
                     st.session_state.messages.append({"role": "assistant", "content": response})
+                except asyncio.TimeoutError:
+                    st.error("Request timed out. The navigation may still be in progress. Please wait and try again.")
                 except Exception as e:
+                    import traceback
+                    error_details = traceback.format_exc()
                     st.error(f"Error: {e}")
+                    st.code(error_details, language="python")
     else:
         st.error("Agent is not initialized.")
 
