@@ -52,8 +52,9 @@ dev = [
     "pre-commit>=4.0.0",
 ]
 
-[project.scripts]
-eng-ai-agents-cli = "eng-ai-agents.commands.cli:main"
+# [project.scripts]
+# eng-ai-agents-cli = "eng-ai-agents.commands.cli:main"
+# Commented out - module doesn't exist yet
 
 [tool.uv]
 dev-dependencies = [
