@@ -1,7 +1,3 @@
-"""
-Pydantic AI Agent for ROSA with navigation and reasoning capabilities.
-Uses pydantic_ai for type-safe agent definition with streaming support.
-"""
 import os
 import asyncio
 from pathlib import Path
@@ -14,15 +10,12 @@ from dotenv import load_dotenv
 from message_bus import NATSMessageBus, MessageBus
 from ros_bridge import ROSBridge
 
-# Load .env file from workspace root
 env_path = Path(__file__).parent.parent.parent.parent / ".env"
 if env_path.exists():
     load_dotenv(env_path)
 
 
-# Pydantic models for agent tools
 class NavigateToPoseRequest(BaseModel):
-    """Request to navigate robot to a specific pose."""
     x: float = Field(description="X coordinate in meters")
     y: float = Field(description="Y coordinate in meters")
     theta: float = Field(default=0.0, description="Orientation in radians (0.0 = facing positive X)")
@@ -30,14 +23,12 @@ class NavigateToPoseRequest(BaseModel):
 
 
 class NavigateToPoseResponse(BaseModel):
-    """Response from navigation request."""
     success: bool
     message: str
     final_pose: Optional[Dict[str, float]] = None
 
 
 class GetRobotPoseResponse(BaseModel):
-    """Current robot pose information."""
     x: float
     y: float
     theta: float
@@ -45,12 +36,10 @@ class GetRobotPoseResponse(BaseModel):
 
 
 class SemanticLocationRequest(BaseModel):
-    """Request to find a semantic location."""
-    semantic_name: str = Field(description="Semantic name like 'table', 'bench', 'door', 'chair'")
+    semantic_name: str = Field(description="Semantic name like 'table', 'bench'")
 
 
 class SemanticLocationResponse(BaseModel):
-    """Response with semantic location coordinates."""
     found: bool
     semantic_name: str
     x: float
@@ -60,7 +49,6 @@ class SemanticLocationResponse(BaseModel):
 
 
 class SemanticLocationData(BaseModel):
-    """Data for a single semantic location."""
     x: float
     y: float
     theta: float
@@ -68,27 +56,22 @@ class SemanticLocationData(BaseModel):
 
 
 class MapInfoResponse(BaseModel):
-    """Map information including semantic locations."""
     map_name: str
     semantic_locations: Dict[str, SemanticLocationData]
     description: Optional[str] = None
 
 
 class PydanticROSAgent:
-    """Pydantic AI agent for ROS navigation with reasoning."""
     
     def __init__(self, message_bus: MessageBus, ros_bridge: ROSBridge):
         self.message_bus = message_bus
         self.ros_bridge = ros_bridge
         
-        # Verify OpenAI API key is set (pydantic_ai reads from environment)
         api_key = os.getenv("OPENAI_API_KEY")
         if not api_key:
             raise ValueError("OPENAI_API_KEY not set in environment. Please set it in your .env file.")
         
-        # Create pydantic_ai agent with reasoning model
-        # Using string-based model identifier (simpler approach)
-        # pydantic_ai automatically reads OPENAI_API_KEY from environment
+
         instructions = """You are a ROSA (ROS Agent) assistant that helps navigate a robot in a maze environment.
 You can reason about the maze layout, find semantic locations (like tables, benches, doors), and navigate the robot to specific goals.
 
@@ -116,18 +99,15 @@ Always reason step-by-step about the maze layout and navigation path before exec
                 "arbitrary_types_allowed": True  # Allow non-Pydantic types like ROSBridge
             }
         
-        # Use string-based model identifier (simpler, matches pydantic_ai examples)
-        # 'openai:gpt-4o' format tells pydantic_ai to use OpenAI's GPT-4o model
+
         self.agent = Agent(
             'openai:gpt-4o',
             instructions=instructions,
             deps_type=AgentDeps,
         )
-        
-        # Register tools with RunContext to access dependencies
+
         @self.agent.tool
         async def navigate_to_pose(ctx: RunContext[AgentDeps], req: NavigateToPoseRequest) -> NavigateToPoseResponse:
-            """Navigate robot to a specific pose."""
             result = await ctx.deps.ros_bridge.navigate_to_pose(req.x, req.y, req.theta, req.frame_id)
             if result.get("status") == "ok":
                 return NavigateToPoseResponse(
@@ -139,7 +119,6 @@ Always reason step-by-step about the maze layout and navigation path before exec
         
         @self.agent.tool
         async def get_robot_pose(ctx: RunContext[AgentDeps]) -> GetRobotPoseResponse:
-            """Get current robot pose."""
             result = await ctx.deps.ros_bridge.get_robot_pose()
             if result.get("status") == "ok":
                 data = result.get("data", {})
@@ -153,7 +132,6 @@ Always reason step-by-step about the maze layout and navigation path before exec
         
         @self.agent.tool
         async def get_map_info(ctx: RunContext[AgentDeps]) -> MapInfoResponse:
-            """Get map information including semantic locations."""
             result = await ctx.deps.ros_bridge.get_map_info()
             if result.get("status") == "ok":
                 data = result.get("data", {})
@@ -175,7 +153,6 @@ Always reason step-by-step about the maze layout and navigation path before exec
         
         @self.agent.tool
         async def find_semantic_location(ctx: RunContext[AgentDeps], req: SemanticLocationRequest) -> SemanticLocationResponse:
-            """Find a semantic location in the map."""
             result = await ctx.deps.ros_bridge.find_semantic_location(req.semantic_name)
             if result.get("status") == "ok":
                 data = result.get("data", {})
@@ -199,56 +176,30 @@ Always reason step-by-step about the maze layout and navigation path before exec
         # ROS inspection tools (same as ReplicateRosaMilestone)
         @self.agent.tool
         async def list_nodes(ctx: RunContext[AgentDeps]) -> str:
-            """List all active ROS 2 nodes via message bus."""
             return await ctx.deps.ros_bridge.list_nodes()
         
         @self.agent.tool
         async def list_topics(ctx: RunContext[AgentDeps]) -> str:
-            """List all active ROS 2 topics via message bus."""
             return await ctx.deps.ros_bridge.list_topics()
         
         @self.agent.tool
         async def topic_info(ctx: RunContext[AgentDeps], topic_name: str) -> str:
-            """Get general information about a specific ROS 2 topic (type, publisher count, subscription count) via message bus.
-            For detailed publisher/subscriber lists, use topic_publishers or topic_subscribers.
-            
-            Args:
-                topic_name: The name of the topic (e.g., /cmd_vel)
-            """
             return await ctx.deps.ros_bridge.get_topic_info(topic_name)
         
         @self.agent.tool
         async def topic_publishers(ctx: RunContext[AgentDeps], topic_name: str) -> str:
-            """Get list of nodes that publish to a specific ROS 2 topic via message bus.
-            Use this when asked "who publishes to this topic" or "who has published to this topic".
-            
-            Args:
-                topic_name: The name of the topic (e.g., /cmd_vel)
-            """
             return await ctx.deps.ros_bridge.get_topic_publishers(topic_name)
         
         @self.agent.tool
         async def topic_subscribers(ctx: RunContext[AgentDeps], topic_name: str) -> str:
-            """Get list of nodes that subscribe to a specific ROS 2 topic via message bus.
-            Use this when asked "who subscribes to this topic" or "who are its subscribers".
-            
-            Args:
-                topic_name: The name of the topic (e.g., /cmd_vel)
-            """
             return await ctx.deps.ros_bridge.get_topic_subscribers(topic_name)
         
         @self.agent.tool
         async def echo_topic(ctx: RunContext[AgentDeps], topic_name: str) -> str:
-            """Echo a message from a specific ROS 2 topic via message bus.
-            
-            Args:
-                topic_name: The name of the topic (e.g., /scan)
-            """
             return await ctx.deps.ros_bridge.echo_topic(topic_name)
         
         @self.agent.tool
         async def subscribe_topic(ctx: RunContext[AgentDeps], topic_name: str) -> str:
-            """Subscribe to a ROS 2 topic and return one message via message bus."""
             return await ctx.deps.ros_bridge.subscribe_topic(topic_name)
         
         # Store deps for use in run methods
@@ -257,7 +208,6 @@ Always reason step-by-step about the maze layout and navigation path before exec
         self.conversation_history = []
     
     def _convert_messages(self, messages: list) -> list:
-        """Convert Streamlit message format to pydantic_ai ModelMessage format."""
         pydantic_messages = []
         for msg in messages:
             if msg["role"] == "user":
@@ -267,15 +217,6 @@ Always reason step-by-step about the maze layout and navigation path before exec
         return pydantic_messages
     
     async def run_streaming(self, user_query: str, previous_messages: list | None = None) -> AsyncIterator[str]:
-        """Run agent with streaming responses.
-        
-        Args:
-            user_query: User's query/instruction
-            previous_messages: List of previous messages in format [{"role": "user/assistant", "content": "..."}]
-        
-        Yields:
-            Streaming text chunks from the agent
-        """
         # Convert previous messages to pydantic_ai format
         history = self._convert_messages(previous_messages or [])
         
@@ -285,26 +226,14 @@ Always reason step-by-step about the maze layout and navigation path before exec
         # Get the response text - pydantic_ai uses result.output (not result.data)
         response_text = result.output if hasattr(result, 'output') else str(result)
         
-        # Ensure newlines are actual newlines (not \n strings)
         if isinstance(response_text, str):
-            # Replace literal \n strings with actual newlines if needed
             response_text = response_text.replace('\\n', '\n')
         
-        # Stream character by character for smooth streaming effect
         for char in response_text:
             yield char
-            await asyncio.sleep(0.01)  # Small delay for streaming effect
+            await asyncio.sleep(0.01)
     
     async def run(self, user_query: str, previous_messages: list | None = None) -> str:
-        """Run agent and return complete response.
-        
-        Args:
-            user_query: User's query/instruction
-            previous_messages: List of previous messages in format [{"role": "user/assistant", "content": "..."}]
-        
-        Returns:
-            Complete response text
-        """
         try:
             # Convert previous messages to pydantic_ai format
             history = self._convert_messages(previous_messages or [])
@@ -315,19 +244,15 @@ Always reason step-by-step about the maze layout and navigation path before exec
             # Extract the actual text content - pydantic_ai uses result.output (not result.data)
             response_text = result.output if hasattr(result, 'output') else str(result)
             
-            # Ensure newlines are actual newlines (not \n strings)
             if isinstance(response_text, str):
-                # Replace literal \n strings with actual newlines if needed
                 response_text = response_text.replace('\\n', '\n')
             
             return response_text
         except Exception as e:
-            # Return error message instead of raising to prevent streamlit from showing error
             return f"I encountered an error while processing your request: {str(e)}\n\nThe navigation commands may have completed successfully, but there was an issue formatting the response."
 
 
 async def create_pydantic_agent(message_bus: MessageBus) -> PydanticROSAgent:
-    """Create and initialize pydantic AI agent."""
     ros_bridge = ROSBridge(message_bus)
     return PydanticROSAgent(message_bus, ros_bridge)
 

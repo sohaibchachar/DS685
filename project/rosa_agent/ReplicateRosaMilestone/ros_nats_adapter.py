@@ -3,7 +3,7 @@ import os
 import subprocess
 from message_bus import NATSMessageBus
 
-# Map NATS subjects to ROS 2 CLI commands
+
 COMMANDS = {
     "ros.nodes.list": ["ros2", "node", "list"],
     "ros.topics.list": ["ros2", "topic", "list"],
@@ -12,7 +12,6 @@ COMMANDS = {
 }
 
 def _parse_topic_info(output: str):
-    """Parse ros2 topic info --verbose output to extract publishers/subscribers."""
     lines = output.strip().split('\n')
     info = {
         "type": None,
@@ -83,7 +82,6 @@ def _parse_topic_info(output: str):
     return info
 
 async def execute_command(cmd_args):
-    """Executes a shell command asynchronously and captures output."""
     if not cmd_args:
         return "Error: Invalid command configuration."
         
@@ -113,16 +111,15 @@ async def run_adapter():
         print(f"Failed to connect to NATS at {nats_url}: {e}")
         return
 
-    # Dynamic handler generator
+
     async def make_handler(cmd_def):
         return lambda data: execute_command(cmd_def(data) if callable(cmd_def) else cmd_def)
 
-    # Subscribe to standard commands
     for subject, cmd_def in COMMANDS.items():
         print(f"Subscribing to {subject}...")
         await bus.subscribe(subject, await make_handler(cmd_def))
 
-    # Handle topic info (general only)
+
     async def handle_topic_info(data):
         topic = data.get("topic")
         cmd = ["ros2", "topic", "info", topic, "--verbose"]
@@ -133,7 +130,6 @@ async def run_adapter():
         general_info += f"Subscription count: {parsed['subscription_count']}"
         return general_info
 
-    # Handle topic publishers
     async def handle_topic_publishers(data):
         topic = data.get("topic")
         cmd = ["ros2", "topic", "info", topic, "--verbose"]
@@ -144,7 +140,6 @@ async def run_adapter():
             return f"Publishers for {topic} ({parsed['publisher_count']}):\n{publishers_list}"
         return f"No publishers found for {topic}"
 
-    # Handle topic subscribers
     async def handle_topic_subscribers(data):
         topic = data.get("topic")
         cmd = ["ros2", "topic", "info", topic, "--verbose"]
@@ -155,7 +150,6 @@ async def run_adapter():
             return f"Subscribers for {topic} ({parsed['subscription_count']}):\n{subscribers_list}"
         return f"No subscribers found for {topic}"
 
-    # Handle subscribe topic (listen once)
     async def handle_subscribe(data):
         topic = data.get("topic")
         cmd = ["ros2", "topic", "echo", topic, "--once"]

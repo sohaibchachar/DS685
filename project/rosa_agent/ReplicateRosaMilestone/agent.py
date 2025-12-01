@@ -20,7 +20,6 @@ def set_global_loop(loop):
     _loop = loop
 
 def create_agent(bus: MessageBus) -> Agent:
-    """Creates a ReAct agent with ROS tools (decoupled from LangChain via Agent interface)."""
     bridge = ROSBridge(bus)
     
     if not os.environ.get("OPENAI_API_KEY"):

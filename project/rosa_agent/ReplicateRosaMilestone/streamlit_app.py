@@ -12,7 +12,6 @@ load_dotenv()
 st.set_page_config(page_title="ROSA Agent", layout="wide", initial_sidebar_state="expanded")
 st.title("ROSA Agent - Decoupled Architecture")
 
-# Sidebar for example queries
 with st.sidebar:
     st.markdown("### Example Queries")
     st.markdown("""
@@ -29,11 +28,9 @@ with st.sidebar:
         st.session_state.messages = []
         st.rerun()
 
-# Initialize Session State
 if "messages" not in st.session_state:
     st.session_state.messages = []
 
-# Background Event Loop Setup
 if "loop_thread" not in st.session_state:
     loop = asyncio.new_event_loop()
     

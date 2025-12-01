@@ -1,7 +1,6 @@
 from message_bus import MessageBus
 
 class ROSBridge:
-    """Client-side proxy that forwards requests to the ROS adapter via NATS."""
     def __init__(self, bus: MessageBus):
         self.bus = bus
 

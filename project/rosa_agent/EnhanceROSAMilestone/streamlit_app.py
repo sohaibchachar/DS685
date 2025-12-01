@@ -12,11 +12,9 @@ load_dotenv()
 st.set_page_config(page_title="Enhanced ROSA Agent", layout="wide", initial_sidebar_state="expanded")
 st.title("Enhanced ROSA Agent - Pydantic AI")
 
-# Initialize Session State
 if "messages" not in st.session_state:
     st.session_state.messages = []
 
-# Background Event Loop Setup
 if "loop_thread" not in st.session_state:
     loop = asyncio.new_event_loop()
     
@@ -87,14 +85,13 @@ if prompt := st.chat_input("Ask ROSA (e.g., 'Navigate to x=2.0, y=1.5' or 'List 
         with st.chat_message("assistant"):
             with st.spinner("Thinking..."):
                 try:
-                    # Get previous messages (excluding the current one we just added)
                     previous_messages = st.session_state.messages[:-1]
                     
                     future = asyncio.run_coroutine_threadsafe(
                         st.session_state.agent.run(prompt, previous_messages=previous_messages),
                         st.session_state.event_loop
                     )
-                    response = future.result(timeout=300)  # Increased timeout for multiple navigations
+                    response = future.result(timeout=300)
                     st.markdown(response)
                     st.session_state.messages.append({"role": "assistant", "content": response})
                 except asyncio.TimeoutError:

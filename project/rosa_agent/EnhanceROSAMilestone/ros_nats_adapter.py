@@ -5,7 +5,6 @@ import re
 import math
 from message_bus import NATSMessageBus
 
-# Map NATS subjects to ROS 2 CLI commands
 COMMANDS = {
     "ros.nodes.list": ["ros2", "node", "list"],
     "ros.topics.list": ["ros2", "topic", "list"],
@@ -14,7 +13,6 @@ COMMANDS = {
 }
 
 def _parse_topic_info(output: str):
-    """Parse ros2 topic info --verbose output to extract publishers/subscribers."""
     lines = output.strip().split('\n')
     info = {
         "type": None,
@@ -85,7 +83,6 @@ def _parse_topic_info(output: str):
     return info
 
 async def execute_command(cmd_args):
-    """Executes a shell command asynchronously and captures output."""
     if not cmd_args:
         return "Error: Invalid command configuration."
         
@@ -187,7 +184,6 @@ async def handle_navigate_to_pose(data):
     return {"status": "error", "data": f"Failed to send navigation goal: {result.stderr or result.stdout}"}
 
 async def _try_odom_pose():
-    """Try to get pose from /odom topic as fallback."""
     try:
         result = subprocess.run(
             ["ros2", "topic", "echo", "/odom", "--once"],

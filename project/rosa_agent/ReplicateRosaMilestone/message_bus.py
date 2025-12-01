@@ -1,7 +1,3 @@
-"""
-Message passing layer using NATS.io and JetStream.
-This provides decoupling between the AI agent and ROS simulator.
-"""
 import json
 import asyncio
 from typing import Optional, Callable, Dict, Any
@@ -18,26 +14,21 @@ except ImportError:
 
 
 class MessageBus(ABC):
-    """Abstract message bus interface for decoupling."""
     
     @abstractmethod
     async def publish(self, subject: str, message: Dict[str, Any]) -> None:
-        """Publish a message to a subject."""
         pass
     
     @abstractmethod
     async def subscribe(self, subject: str, callback: Callable) -> None:
-        """Subscribe to a subject and call callback on messages."""
         pass
     
     @abstractmethod
     async def request(self, subject: str, message: Dict[str, Any], timeout: float = 5.0) -> Dict[str, Any]:
-        """Request-response pattern."""
         pass
 
 
 class NATSMessageBus(MessageBus):
-    """NATS.io implementation of message bus."""
     
     def __init__(self, nats_url: str = "nats://localhost:4222"):
         self.nats_url = nats_url
@@ -46,7 +37,6 @@ class NATSMessageBus(MessageBus):
         self._connected = False
     
     async def connect(self):
-        """Connect to NATS server."""
         if not NATS_AVAILABLE:
             raise RuntimeError("nats-py is not installed. Install with: pip install nats-py")
         
@@ -56,13 +46,11 @@ class NATSMessageBus(MessageBus):
         print(f"Connected to NATS at {self.nats_url}")
     
     async def disconnect(self):
-        """Disconnect from NATS server."""
         if self.nc:
             await self.nc.close()
             self._connected = False
     
     async def publish(self, subject: str, message: Dict[str, Any]) -> None:
-        """Publish a message to a subject."""
         if not self._connected:
             raise RuntimeError("Not connected to NATS. Call connect() first.")
         
@@ -70,7 +58,6 @@ class NATSMessageBus(MessageBus):
         await self.nc.publish(subject, payload)
     
     async def subscribe(self, subject: str, callback: Callable) -> None:
-        """Subscribe to a subject and call callback on messages."""
         if not self._connected:
             raise RuntimeError("Not connected to NATS. Call connect() first.")
         
@@ -86,7 +73,6 @@ class NATSMessageBus(MessageBus):
         await self.nc.subscribe(subject, cb=message_handler)
     
     async def request(self, subject: str, message: Dict[str, Any] = None, timeout: float = 5.0) -> Any:
-        """Request-response pattern."""
         if not self._connected:
             raise RuntimeError("Not connected to NATS. Call connect() first.")
         
@@ -96,14 +82,12 @@ class NATSMessageBus(MessageBus):
 
 
 class MockMessageBus(MessageBus):
-    """Mock message bus for testing without NATS."""
     
     def __init__(self):
         self.messages: Dict[str, list] = {}
         self.subscribers: Dict[str, list] = {}
     
     async def publish(self, subject: str, message: Dict[str, Any]) -> None:
-        """Publish a message (stores in memory for testing)."""
         if subject not in self.messages:
             self.messages[subject] = []
         self.messages[subject].append(message)
@@ -114,13 +98,11 @@ class MockMessageBus(MessageBus):
                 await callback(message)
     
     async def subscribe(self, subject: str, callback: Callable) -> None:
-        """Subscribe to a subject."""
         if subject not in self.subscribers:
             self.subscribers[subject] = []
         self.subscribers[subject].append(callback)
     
     async def request(self, subject: str, message: Dict[str, Any], timeout: float = 5.0) -> Dict[str, Any]:
-        """Request-response pattern (mock)."""
         # In a real implementation, this would wait for a response
         # For mock, return empty response
         return {"status": "ok", "data": None}
