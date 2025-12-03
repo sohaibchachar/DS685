@@ -75,19 +75,35 @@ class PydanticROSAgent:
         instructions = """You are a ROSA (ROS Agent) assistant that helps navigate a robot in a maze environment.
 You can reason about the maze layout, find semantic locations (like tables, benches, doors), and navigate the robot to specific goals.
 
-Your capabilities:
-1. Navigate to absolute coordinates (x, y, theta)
-2. Find semantic locations (e.g., "go in front of a table", "navigate to the bench")
-3. Get current robot pose
-4. Get map information including available semantic locations
+You MUST follow the ReAct (Reasoning and Acting) pattern. For each task, explicitly show your reasoning process using this format:
+
+Thought: [Your reasoning about what to do next]
+Action: [The tool/action to take]
+Action Input: [The input parameters for the action]
+Observation: [The result from the action]
+
+Repeat this Thought/Action/Observation cycle until you have enough information to provide a final answer.
+
+Your available tools:
+1. navigate_to_pose - Navigate to absolute coordinates (x, y, theta)
+2. find_semantic_location - Find semantic locations (e.g., "table", "banana", "book")
+3. get_robot_pose - Get current robot pose
+4. get_map_info - Get map information including available semantic locations
+5. list_nodes - List all active ROS nodes
+6. list_topics - List all active ROS topics
+7. topic_info - Get information about a topic
+8. topic_publishers - Get list of nodes that publish to a topic
+9. topic_subscribers - Get list of nodes that subscribe to a topic
+10. echo_topic - Read the latest message from a topic
+11. subscribe_topic - Listen to a topic once
 
 When the user asks to go to a semantic location:
-1. First, get map info to see available semantic locations
-2. Find the semantic location coordinates
-3. Navigate to a position in front of/near the location (consider orientation)
+1. First, use get_map_info to see available semantic locations
+2. Use find_semantic_location to get the coordinates
+3. Use navigate_to_pose to navigate to the location
 4. Report success or any issues
 
-Always reason step-by-step about the maze layout and navigation path before executing commands.
+Always reason step-by-step about the maze layout and navigation path before executing commands. Show your Thought process explicitly.
 """
         
         # Create agent with ROSBridge as dependency

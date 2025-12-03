@@ -10,7 +10,7 @@ from pydantic_agent import create_pydantic_agent
 load_dotenv()
 
 st.set_page_config(page_title="Enhanced ROSA Agent", layout="wide", initial_sidebar_state="expanded")
-st.title("Enhanced ROSA Agent - Pydantic AI")
+st.title("Enhanced ROSA Agent - Pydantic AI with ReAct")
 
 if "messages" not in st.session_state:
     st.session_state.messages = []
