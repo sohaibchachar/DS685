@@ -75,22 +75,21 @@ class PydanticROSAgent:
         instructions = """You are a ROSA (ROS Agent) assistant that helps navigate a robot in a maze environment.
 You can reason about the maze layout, find semantic locations (like tables, benches, doors), and navigate the robot to specific goals.
 
-You MUST follow the ReAct (Reasoning and Acting) pattern. For each task, explicitly show your reasoning process using this format:
+You MUST follow the ReAct (Reasoning and Acting) pattern internally. Use tools to gather information and reason about the task, but provide your response in a natural, human-readable format without labels like "Final Answer:" or "Observation:".
 
-Thought: [Your reasoning about what to do next]
-Action: [The tool/action to take]
-Action Input: [The input parameters for the action]
-Observation: [The result from the action]
-
-Repeat this Thought/Action/Observation cycle until you have enough information to provide a final answer.
+IMPORTANT:
+- When asked to list topics, nodes, or any data, you MUST include the actual data in your response, not just acknowledge that you retrieved it
+- Format all responses in human-readable format (e.g., "The robot is at x=2.5 meters, y=1.3 meters" not LaTeX notation)
+- Do NOT use "Final Answer:" label - just provide the answer directly
+- Do NOT show intermediate "Observation:" labels in your final response
 
 Your available tools:
 1. navigate_to_pose - Navigate to absolute coordinates (x, y, theta)
 2. find_semantic_location - Find semantic locations (e.g., "table", "banana", "book")
 3. get_robot_pose - Get current robot pose
 4. get_map_info - Get map information including available semantic locations
-5. list_nodes - List all active ROS nodes
-6. list_topics - List all active ROS topics
+5. list_nodes - List all active ROS nodes (returns the actual list - include it in your response)
+6. list_topics - List all active ROS topics (returns the actual list - include it in your response)
 7. topic_info - Get information about a topic
 8. topic_publishers - Get list of nodes that publish to a topic
 9. topic_subscribers - Get list of nodes that subscribe to a topic
@@ -101,12 +100,13 @@ When the user asks to go to a semantic location:
 1. First, use get_map_info to see available semantic locations
 2. Use find_semantic_location to get the coordinates
 3. Use navigate_to_pose to navigate to the location
-4. Report success or any issues
+4. Report success or any issues in natural language
 
-Always reason step-by-step about the maze layout and navigation path before executing commands. Show your Thought process explicitly.
+When asked to list topics or nodes, you MUST include the actual list in your response. For example, if list_topics returns "/cmd_vel /odom /scan", your response should include these topic names, not just say "I have listed the topics".
+
+Always reason step-by-step internally, but provide your final response in a clear, direct, human-readable format without any labels.
 """
         
-
         class AgentDeps(BaseModel):
             ros_bridge: ROSBridge
             
@@ -188,6 +188,7 @@ Always reason step-by-step about the maze layout and navigation path before exec
                 description=f"Location '{req.semantic_name}' not found"
             )
         
+
         @self.agent.tool
         async def list_nodes(ctx: RunContext[AgentDeps]) -> str:
             return await ctx.deps.ros_bridge.list_nodes()
@@ -216,6 +217,7 @@ Always reason step-by-step about the maze layout and navigation path before exec
         async def subscribe_topic(ctx: RunContext[AgentDeps], topic_name: str) -> str:
             return await ctx.deps.ros_bridge.subscribe_topic(topic_name)
         
+
         self.agent_deps = AgentDeps(ros_bridge=ros_bridge)
         # Store conversation history
         self.conversation_history = []
@@ -229,16 +231,34 @@ Always reason step-by-step about the maze layout and navigation path before exec
                 pydantic_messages.append(ModelResponse(parts=[TextPart(content=msg["content"])]))
         return pydantic_messages
     
+    def _clean_response(self, text: str) -> str:
+        """Remove 'Final Answer:' labels and clean up the response."""
+        if not isinstance(text, str):
+            return text
+        
+        text = text.replace('\\n', '\n')
+        
+        lines = text.split('\n')
+        cleaned_lines = []
+        for line in lines:
+            line_lower = line.strip().lower()
+            if line_lower.startswith('final answer:'):
+                content = line.split(':', 1)[1].strip() if ':' in line else line
+                if content:
+                    cleaned_lines.append(content)
+            else:
+                cleaned_lines.append(line)
+        
+        return '\n'.join(cleaned_lines).strip()
+    
     async def run_streaming(self, user_query: str, previous_messages: list | None = None) -> AsyncIterator[str]:
-        # Convert previous messages to pydantic_ai format
         history = self._convert_messages(previous_messages or [])
         
+
         result = await self.agent.run(user_query, deps=self.agent_deps, message_history=history)
         
         response_text = result.output if hasattr(result, 'output') else str(result)
-        
-        if isinstance(response_text, str):
-            response_text = response_text.replace('\\n', '\n')
+        response_text = self._clean_response(response_text)
         
         for char in response_text:
             yield char
@@ -248,13 +268,10 @@ Always reason step-by-step about the maze layout and navigation path before exec
         try:
             history = self._convert_messages(previous_messages or [])
             
-
             result = await self.agent.run(user_query, deps=self.agent_deps, message_history=history)
             
             response_text = result.output if hasattr(result, 'output') else str(result)
-            
-            if isinstance(response_text, str):
-                response_text = response_text.replace('\\n', '\n')
+            response_text = self._clean_response(response_text)
             
             return response_text
         except Exception as e:
@@ -264,4 +281,3 @@ Always reason step-by-step about the maze layout and navigation path before exec
 async def create_pydantic_agent(message_bus: MessageBus) -> PydanticROSAgent:
     ros_bridge = ROSBridge(message_bus)
     return PydanticROSAgent(message_bus, ros_bridge)
-
