@@ -106,13 +106,12 @@ When the user asks to go to a semantic location:
 Always reason step-by-step about the maze layout and navigation path before executing commands. Show your Thought process explicitly.
 """
         
-        # Create agent with ROSBridge as dependency
-        # Use AgentDeps to inject ros_bridge into tools
+
         class AgentDeps(BaseModel):
             ros_bridge: ROSBridge
             
             model_config = {
-                "arbitrary_types_allowed": True  # Allow non-Pydantic types like ROSBridge
+                "arbitrary_types_allowed": True
             }
         
 
@@ -189,7 +188,6 @@ Always reason step-by-step about the maze layout and navigation path before exec
                 description=f"Location '{req.semantic_name}' not found"
             )
         
-        # ROS inspection tools (same as ReplicateRosaMilestone)
         @self.agent.tool
         async def list_nodes(ctx: RunContext[AgentDeps]) -> str:
             return await ctx.deps.ros_bridge.list_nodes()
@@ -218,7 +216,6 @@ Always reason step-by-step about the maze layout and navigation path before exec
         async def subscribe_topic(ctx: RunContext[AgentDeps], topic_name: str) -> str:
             return await ctx.deps.ros_bridge.subscribe_topic(topic_name)
         
-        # Store deps for use in run methods
         self.agent_deps = AgentDeps(ros_bridge=ros_bridge)
         # Store conversation history
         self.conversation_history = []
@@ -236,10 +233,8 @@ Always reason step-by-step about the maze layout and navigation path before exec
         # Convert previous messages to pydantic_ai format
         history = self._convert_messages(previous_messages or [])
         
-        # Run agent with dependencies and conversation history
         result = await self.agent.run(user_query, deps=self.agent_deps, message_history=history)
         
-        # Get the response text - pydantic_ai uses result.output (not result.data)
         response_text = result.output if hasattr(result, 'output') else str(result)
         
         if isinstance(response_text, str):
@@ -251,13 +246,11 @@ Always reason step-by-step about the maze layout and navigation path before exec
     
     async def run(self, user_query: str, previous_messages: list | None = None) -> str:
         try:
-            # Convert previous messages to pydantic_ai format
             history = self._convert_messages(previous_messages or [])
             
-            # Run agent with dependencies and conversation history
+
             result = await self.agent.run(user_query, deps=self.agent_deps, message_history=history)
             
-            # Extract the actual text content - pydantic_ai uses result.output (not result.data)
             response_text = result.output if hasattr(result, 'output') else str(result)
             
             if isinstance(response_text, str):
