@@ -26,7 +26,7 @@ This milestone implements a ROSA agent using **LangChain** with the ReAct (Reaso
 - Echo and subscribe to topics
 - Query topic publishers and subscribers
 
-**Demo Video:** [ReplicateRosaMilestone Demo](https://drive.google.com/drive/folders/1RPLeSFiB-w4GorBCNqVOu4jDTx_UBB9j?usp=sharing)
+**Demo Video:** [ReplicateRosaMilestone Demo Video](https://drive.google.com/file/d/1CEMd9Y9uw4N_dqomLsxWjw17b6l9K4Cz/view?usp=sharing)
 
 ### EnhanceROSAMilestone
 This milestone extends the ROSA agent using **pydantic_ai** framework with ReAct-style reasoning. It adds robot navigation capabilities (both absolute coordinates and semantic locations) while maintaining the same decoupled architecture.
@@ -46,8 +46,9 @@ This milestone extends the ROSA agent using **pydantic_ai** framework with ReAct
 - Get map information with semantic locations
 - Find semantic locations by name
 
-**Demo:** [EnhanceROSAMilestone Demo - Robot Navigation using LLM](https://drive.google.com/drive/folders/1ZeZdgC-ydorCJ5IJbgTreCr2TB4QqKV9?usp=sharing)  
-Includes video demonstration of robot navigation and screenshot showing basic commands (getting tables info from LLM and subscribing to topics).
+**Demo:**
+- [EnhanceROSAMilestone Demo Video - Robot Navigation using LLM](https://drive.google.com/file/d/1G--5zPn25xYXDpiAY33ABYESuIwDnBD5/view?usp=sharing)
+- [EnhanceROSAMilestone Screenshot - Basic Commands Demo](https://drive.google.com/file/d/1qL2cnDCyMKKPlkirhsk9XzeM2MPGoLDp/view?usp=sharing)
 
 ### Communication Flow
 
